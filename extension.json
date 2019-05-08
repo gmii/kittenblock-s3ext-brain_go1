@@ -1,0 +1,6 @@
+{
+    "name": "BrainGO",
+    "type": "arduino",
+    "extensions": ["BrainGO"],
+    "image": "BrainGO.png"
+}
