@@ -106,4 +106,10 @@ class BrainGOExtension{
             ]
         };
     }
+
+    test (args) {
+        console.log('test');
+    }
 }
+
+module.exports = BrainGOExtension;
