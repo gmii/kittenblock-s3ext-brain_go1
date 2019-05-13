@@ -22,12 +22,13 @@
 		["B", "%m.Sensor_pin 狀態 ","runDigitalt","紅色 光感測器",
 		{"encode":"{d0}","setup":"pinMode({0},INPUT);\n","inc":"","def":"","work":"digitalRead({0})","loop":""}],
 
-    		["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
+    	["w", "設定 %m.LED_Color 為 %m.LED_Switch","runLED", "紅色LED", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
+		
 		["w", "設定 %m.IO_outin 為 %m.IO_Switch","IO", "紅光", "亮",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
-    		["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
+    	["w", "設定 %m.PC_Pin 為 %m.LED_Switch","runADC", "PC1", "開",
 		{"encode":"{d0}{d1}","setup":"pinMode({0},OUTPUT);\n","inc":"","def":"","work":"digitalWrite({0},{1});\n","loop":""}],
 
 
@@ -43,7 +44,7 @@
 		["R", "測得溫度(°C)","getTemp","0",
 		{"encode":"{n0}","setup":"pinMode(A0,INPUT);\n","inc":"","def":"","work":"(((analogRead(A0)*50)/10)-500)/10\n ","loop":""}],
 
-    		["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
+    	["R", "%m.Ultrasonic_Color 偵測距離 ","getUltrasonicArduino","白色超音波",
 		{"encode":"{d0}",
 		"setup":"","inc":"",
 		"def":"float getDistance(int trig){\nchar A=0;\nchar B = 0;\nchar C = 0;\nif(trig == 12){ A = 13; B = 12;} else { A = 2; B = 3;}\npinMode(A,OUTPUT);\ndigitalWrite(A,LOW);\ndelayMicroseconds(2);\ndigitalWrite(A,HIGH);\ndelayMicroseconds(10);\ndigitalWrite(A,LOW);\npinMode(B,INPUT);\nC = pulseIn(B,HIGH,30000)/58.0;\nif(C<=1){return 400;} else{return C;}\n } // 必要註解(以確保大括號存在)",
