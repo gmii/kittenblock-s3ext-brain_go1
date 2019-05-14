@@ -295,6 +295,20 @@ class BrainGOExtension{
                         arduino: this.getTemperatureSensorArduino
                     }
                 },
+                { //getCarbonMonoxideSensor
+                    opcode: 'getCarbonMonoxideSensor',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getCarbonMonoxideSensor',
+                        default: 'carbon monoxide concentration (ppm)'
+                    }),
+                    arguments: {},
+                    func: 'getCarbonMonoxideSensor',
+                    gen: {
+                        arduino: this.getCarbonMonoxideSensorArduino
+                    }
+                },
                 { //getLightSensor
                     opcode: 'getLightSensor',
                     blockType: BlockType.REPORTER,
@@ -313,6 +327,26 @@ class BrainGOExtension{
                     func: 'getLightSensor',
                     gen: {
                         arduino: this.getLightSensorArduino
+                    }
+                },
+                { //getRGBSensor
+                    opcode: 'getRGBSensor',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getRGBSensor',
+                        default: 'rgb sensor detect [COLOR]'
+                    }),
+                    arguments: {
+                        COLOR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'rgbSensorRed',
+                            menu: 'rgbSensorColor'
+                        }
+                    },
+                    func: 'getRGBSensor',
+                    gen: {
+                        arduino: this.getRGBSensorArduino
                     }
                 },
                 { //getUltrasonicSensor
@@ -379,6 +413,7 @@ class BrainGOExtension{
                 'pinSwitch': ['pinOn', 'pinOff'],
                 'analogPin': ['analogPin1', 'analogPin2'],
                 'lightSensorPort': ['lightSensorRed', 'lightSensorGreen'],
+                'rgbSensorColor': ['rgbSensorRed', 'rgbSensorGreen', 'rgbSensorBlue'],
                 'ultrasonicSensorPort': ['ultrasonicSensorWhite', 'ultrasonicSensorBlue'],
                 '3AxisGyroAxis': ['3AxisGyroXAxis', '3AxisGyroYAxis', '3AxisGyroZAxis']
             },
@@ -395,12 +430,14 @@ class BrainGOExtension{
                     'getDigitalPin': 'read digital pin [PIN]',
                     'getAnalogPin': 'read analog pin [PIN]',
                     'getTemperatureSensor': 'temperature (°C)',
+                    'getCarbonMonoxideSensor': 'carbon monoxide concentration (ppm)',
                     'getLightSensor': 'light sensor [PORT]',
+                    'getRGBSensor': 'rgb sensor detect [COLOR]',
                     'getUltrasonicSensor': 'ultrasonic sensor [PORT] distance',
                     'get3AxisGyro': '3-axis gyro [AXIS] angle',
                     // Menu Items
-                    'motorPort': {'motorWhite': 'white', 'motorBlue': 'blue'},
-                    'servoPort': {'servoGreen': 'green', 'servoRed': 'red'},
+                    'motorPort': {'motorWhite': 'white port', 'motorBlue': 'blue port'},
+                    'servoPort': {'servoGreen': 'green port', 'servoRed': 'red port'},
                     'buzzerBeat': {'half': 'half', 'quarter': 'quarter', 'eighth': 'eighth', 'whole': 'whole', 'double': 'double'},
                     'ledColor': {'ledRed': 'red', 'ledYellow': 'yellow', 'ledGreen': 'green'},
                     'ledSwitch': {'ledOn': 'on', 'ledOff': 'off'},
@@ -408,8 +445,9 @@ class BrainGOExtension{
                     'lightSwitch': {'lightOn': 'on', 'lightOff': 'off'},
                     'pinSwitch': {'pinOn': 'on', 'pinOff': 'off'},
                     'analogPin': {'analogPin1': '1', 'analogPin2': '2'},
-                    'lightSensorPort': {'lightSensorRed': 'red', 'lightSensorGreen': 'green'},
-                    'ultrasonicSensorPort': {'ultrasonicSensorWhite': 'white', 'ultrasonicSensorBlue': 'blue'},
+                    'lightSensorPort': {'lightSensorRed': 'red port', 'lightSensorGreen': 'green port'},
+                    'rgbSensorColor': {'rgbSensorRed': 'red', 'rgbSensorGreen': 'green', 'rgbSensorBlue': 'blue'},
+                    'ultrasonicSensorPort': {'ultrasonicSensorWhite': 'white port', 'ultrasonicSensorBlue': 'blue port'},
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X-Axis', '3AxisGyroYAxis': 'Y-Axis', '3AxisGyroZAxis': 'Z-Axis'}
                 },
                 'zh-tw': {
@@ -423,12 +461,14 @@ class BrainGOExtension{
                     'getDigitalPin': '讀取數位訊號腳位 [PIN]',
                     'getAnalogPin': '讀取類比訊號腳位 [PIN]',
                     'getTemperatureSensor': '溫度 (°C)',
+                    'getCarbonMonoxideSensor': '一氧化碳濃度 (ppm)',
                     'getLightSensor': '光感測器 [PORT]',
+                    'getRGBSensor': 'RGB感測器偵測 [COLOR]',
                     'getUltrasonicSensor': '超音波感測器 [PORT] 距離',
                     'get3AxisGyro': '三軸陀螺儀 [AXIS] 角度',
                     // Menu Items
-                    'motorPort': {'motorWhite': '白色', 'motorBlue': '藍色'},
-                    'servoPort': {'servoGreen': '綠色', 'servoRed': '紅色'},
+                    'motorPort': {'motorWhite': '白色連接埠', 'motorBlue': '藍色連接埠'},
+                    'servoPort': {'servoGreen': '綠色連接埠', 'servoRed': '紅色連接埠'},
                     'buzzerBeat': {'half': '二分之一', 'quarter': '四分之一', 'eighth': '八分之一', 'whole': '整拍', 'double': '雙拍'},
                     'ledColor': {'ledRed': '紅色', 'ledYellow': '黃色', 'ledGreen': '綠色'},
                     'ledSwitch': {'ledOn': '開', 'ledOff': '關'},
@@ -436,8 +476,9 @@ class BrainGOExtension{
                     'lightSwitch': {'lightOn': '亮', 'lightOff': '不亮'},
                     'pinSwitch': {'pinOn': '開', 'pinOff': '關'},
                     'analogPin': {'analogPin1': '1', 'analogPin2': '2'},
-                    'lightSensorPort': {'lightSensorRed': '紅色', 'lightSensorGreen': '綠色'},
-                    'ultrasonicSensorPort': {'ultrasonicSensorWhite': '白色', 'ultrasonicSensorBlue': '藍色'},
+                    'lightSensorPort': {'lightSensorRed': '紅色連接埠', 'lightSensorGreen': '綠色連接埠'},
+                    'rgbSensorColor': {'rgbSensorRed': '紅色', 'rgbSensorGreen': '綠色', 'rgbSensorBlue': '藍色'},
+                    'ultrasonicSensorPort': {'ultrasonicSensorWhite': '白色連接埠', 'ultrasonicSensorBlue': '藍色連接埠'},
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X軸', '3AxisGyroYAxis': 'Y軸', '3AxisGyroZAxis': 'Z軸'}
                 }
             },
@@ -470,6 +511,7 @@ class BrainGOExtension{
             'pinOn': 0, 'pinOff': 1,
             'analogPin1': 15, 'analogPin2': 16,
             'lightSensorRed': 9, 'lightSensorGreen': 10,
+            'rgbSensorRed': 0, 'rgbSensorGreen': 1, 'rgbSensorBlue': 2,
             'ultrasonicSensorWhite': 12, 'ultrasonicSensorBlue': 13,
             '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3
         };
@@ -546,9 +588,19 @@ class BrainGOExtension{
         console.log('getTemperatureSensor');
     }
 
+    getCarbonMonoxideSensor (args){
+        console.log('getCarbonMonoxideSensor');
+    }
+
     getLightSensor (args){
         console.log('getLightSensor');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
+        console.log(port);
+    }
+
+    getRGBSensor (args){
+        console.log('getRGBSensor');
+        let color = BrainGOExtension.MenuItemValue(args.COLOR);
         console.log(port);
     }
 
@@ -577,9 +629,10 @@ class BrainGOExtension{
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         const value = gen.valueToCode(block, 'VALUE');
         BrainGOExtension.BrainGOArduino(gen);
-        gen.definitions_[`setServo`] = `\nvoid servopulse(int port, float angle){\n  int pulsewidth = (angle * 11) + 530;\n  digitalWrite(port, HIGH);\n  delayMicroseconds(pulsewidth);\n  digitalWrite(port, LOW);\n  delayMicroseconds(20000 - pulsewidth);\n}\n`;
-        gen.setupCodes_[`setServo_${port}`] = `pinMode(${port}, OUTPUT)`;
-        let code = gen.line(`servopulse(${port}, ${value})`);
+        gen.definitions_[`setServo`] = `\nvoid servopulse(int port, float angle){\n  int pulsewidth = (angle * 11) + 530;\n  digitalWrite(port, HIGH);\n  delayMicroseconds(pulsewidth);\n  digitalWrite(port, LOW);\n  delayMicroseconds(20000 - pulsewidth);\n}\n\nvoid setservo(int port, float angle){\n  for(int i=0;i<50;i++){\n    servopulse(port, angle);\n    delay(15);\n  }\n}\n`;
+        gen.setupCodes_[`setServo_${port}_1`] = `pinMode(${port}, OUTPUT)`;
+        gen.setupCodes_[`setServo_${port}_2`] = `setservo(${port}, 0.0)`;
+        let code = gen.line(`setservo(${port}, ${value})`);
         return code;
     }
 
@@ -643,11 +696,31 @@ class BrainGOExtension{
         return [code, 0];
     }
 
+    getCarbonMonoxideSensorArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getCarbonMonoxideSensor`] = `#include "MQ7.h"`;
+        gen.definitions_[`getCarbonMonoxideSensor`] = `MQ7 mq7(15, 5.0);`;
+        gen.setupCodes_[`getCarbonMonoxideSensor`] = `pinMode(15, INPUT)`;
+        let code = `mq7.getPPM()`;
+        return [code, 0];
+    }
+
     getLightSensorArduino (gen, block){
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         BrainGOExtension.BrainGOArduino(gen);
         gen.setupCodes_[`getLightSensor_${port}`] = `pinMode(${port}, INPUT)`;
         let code = `digitalRead(${port})`;
+        return [code, 0];
+    }
+
+    getRGBSensorArduino (gen, block){
+        const color = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'COLOR'));
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getRGBSensor`] = `#include "GroveColorSensor.h"`;
+        gen.definitions_[`getRGBSensor`] = `GroveColorSensor colorSensor;\n\nint getRGB(int color){\n  int colors[3];\n  colorSensor.readRGB(&colors[0], &colors[1], &colors[2]);\n  return colors[color];\n}\n`;
+        gen.setupCodes_[`getRGBSensor_1`] = `Wire.begin()`;
+        gen.setupCodes_[`getRGBSensor_2`] = `colorSensor.ledStatus = 1`;
+        let code = `getRGB(${color})`;
         return [code, 0];
     }
 
