@@ -281,34 +281,6 @@ class BrainGOExtension{
                         arduino: this.getAnalogPinArduino
                     }
                 },
-                { //getTemperatureSensor
-                    opcode: 'getTemperatureSensor',
-                    blockType: BlockType.REPORTER,
-
-                    text: formatMessage({
-                        id: 'BrainGO.getTemperatureSensor',
-                        default: 'temperature (°C)'
-                    }),
-                    arguments: {},
-                    func: 'getTemperatureSensor',
-                    gen: {
-                        arduino: this.getTemperatureSensorArduino
-                    }
-                },
-                { //getCarbonMonoxideSensor
-                    opcode: 'getCarbonMonoxideSensor',
-                    blockType: BlockType.REPORTER,
-
-                    text: formatMessage({
-                        id: 'BrainGO.getCarbonMonoxideSensor',
-                        default: 'carbon monoxide concentration (ppm)'
-                    }),
-                    arguments: {},
-                    func: 'getCarbonMonoxideSensor',
-                    gen: {
-                        arduino: this.getCarbonMonoxideSensorArduino
-                    }
-                },
                 { //getLightSensor
                     opcode: 'getLightSensor',
                     blockType: BlockType.REPORTER,
@@ -388,6 +360,62 @@ class BrainGOExtension{
                     gen: {
                         arduino: this.get3AxisGyroArduino
                     }
+                },
+                { //getCompass
+                    opcode: 'getCompass',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getCompass',
+                        default: 'compass angle'
+                    }),
+                    arguments: {},
+                    func: 'getCompass',
+                    gen: {
+                        arduino: this.getCompassArduino
+                    }
+                },
+                { //getTemperatureSensor
+                    opcode: 'getTemperatureSensor',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getTemperatureSensor',
+                        default: 'temperature (°C)'
+                    }),
+                    arguments: {},
+                    func: 'getTemperatureSensor',
+                    gen: {
+                        arduino: this.getTemperatureSensorArduino
+                    }
+                },
+                { //getCarbonMonoxideSensor
+                    opcode: 'getCarbonMonoxideSensor',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getCarbonMonoxideSensor',
+                        default: 'carbon monoxide concentration (ppm)'
+                    }),
+                    arguments: {},
+                    func: 'getCarbonMonoxideSensor',
+                    gen: {
+                        arduino: this.getCarbonMonoxideSensorArduino
+                    }
+                },
+                { //getAirPMSensor
+                    opcode: 'getAirPMSensor',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getAirPMSensor',
+                        default: 'PM2.5 concentration (μg/m^3)'
+                    }),
+                    arguments: {},
+                    func: 'getAirPMSensor',
+                    gen: {
+                        arduino: this.getAirPMSensorArduino
+                    }
                 }
             ],
             
@@ -429,12 +457,14 @@ class BrainGOExtension{
                     'setPin': 'set pin [PIN] [SWITCH]',
                     'getDigitalPin': 'read digital pin [PIN]',
                     'getAnalogPin': 'read analog pin [PIN]',
-                    'getTemperatureSensor': 'temperature (°C)',
-                    'getCarbonMonoxideSensor': 'carbon monoxide concentration (ppm)',
                     'getLightSensor': 'light sensor [PORT]',
                     'getRGBSensor': 'rgb sensor detect [COLOR]',
                     'getUltrasonicSensor': 'ultrasonic sensor [PORT] distance',
                     'get3AxisGyro': '3-axis gyro [AXIS] angle',
+                    'getCompass': 'compass angle',
+                    'getTemperatureSensor': 'temperature (°C)',
+                    'getCarbonMonoxideSensor': 'carbon monoxide concentration (ppm)',
+                    'getAirPMSensor': 'PM2.5 concentration (μg/m^3)',
                     // Menu Items
                     'motorPort': {'motorWhite': 'white port', 'motorBlue': 'blue port'},
                     'servoPort': {'servoGreen': 'green port', 'servoRed': 'red port'},
@@ -460,12 +490,14 @@ class BrainGOExtension{
                     'setPin': '設置腳位 [PIN] [SWITCH]',
                     'getDigitalPin': '讀取數位訊號腳位 [PIN]',
                     'getAnalogPin': '讀取類比訊號腳位 [PIN]',
-                    'getTemperatureSensor': '溫度 (°C)',
-                    'getCarbonMonoxideSensor': '一氧化碳濃度 (ppm)',
                     'getLightSensor': '光感測器 [PORT]',
                     'getRGBSensor': 'RGB感測器偵測 [COLOR]',
                     'getUltrasonicSensor': '超音波感測器 [PORT] 距離',
                     'get3AxisGyro': '三軸陀螺儀 [AXIS] 角度',
+                    'getCompass': '電子羅盤角度',
+                    'getTemperatureSensor': '溫度 (°C)',
+                    'getCarbonMonoxideSensor': '一氧化碳濃度 (ppm)',
+                    'getAirPMSensor': 'PM2.5濃度 (μg/m^3)',
                     // Menu Items
                     'motorPort': {'motorWhite': '白色連接埠', 'motorBlue': '藍色連接埠'},
                     'servoPort': {'servoGreen': '綠色連接埠', 'servoRed': '紅色連接埠'},
@@ -584,14 +616,6 @@ class BrainGOExtension{
         console.log(pin);
     }
 
-    getTemperatureSensor (args){
-        console.log('getTemperatureSensor');
-    }
-
-    getCarbonMonoxideSensor (args){
-        console.log('getCarbonMonoxideSensor');
-    }
-
     getLightSensor (args){
         console.log('getLightSensor');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
@@ -614,6 +638,22 @@ class BrainGOExtension{
         console.log('get3AxisGyro');
         let axis = BrainGOExtension.MenuItemValue(args.AXIS);
         console.log(axis);
+    }
+
+    getCompass (args){
+        console.log('getCompass');
+    }
+
+    getTemperatureSensor (args){
+        console.log('getTemperatureSensor');
+    }
+
+    getCarbonMonoxideSensor (args){
+        console.log('getCarbonMonoxideSensor');
+    }
+
+    getAirPMSensor (args){
+        console.log('getAirPMSensor');
     }
 
     /************************************************** Arduino **************************************************/
@@ -689,22 +729,6 @@ class BrainGOExtension{
         return [code, 0];
     }
 
-    getTemperatureSensorArduino (gen, block){
-        BrainGOExtension.BrainGOArduino(gen);
-        gen.setupCodes_[`getTemperatureSensor`] = `pinMode(A0, INPUT)`;
-        let code = `(((analogRead(A0) * 50) / 10) - 500) / 10`;
-        return [code, 0];
-    }
-
-    getCarbonMonoxideSensorArduino (gen, block){
-        BrainGOExtension.BrainGOArduino(gen);
-        gen.includes_[`getCarbonMonoxideSensor`] = `#include "MQ7.h"`;
-        gen.definitions_[`getCarbonMonoxideSensor`] = `MQ7 mq7(15, 5.0);`;
-        gen.setupCodes_[`getCarbonMonoxideSensor`] = `pinMode(15, INPUT)`;
-        let code = `mq7.getPPM()`;
-        return [code, 0];
-    }
-
     getLightSensorArduino (gen, block){
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         BrainGOExtension.BrainGOArduino(gen);
@@ -739,6 +763,44 @@ class BrainGOExtension{
         gen.setupCodes_[`get3AxisGyro`] = `gyro.begin()`;
         gen.loopCodes_[`get3AxisGyro`] = `gyro.update()`;
         let code = `gyro.getAngle(${axis})`;
+        return [code, 0];
+    }
+
+    getCompassArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getCompass`] = `#include "QMC5883L.h"`;
+        gen.definitions_[`getCompass`] = `QMC5883L compass;`;
+        gen.setupCodes_[`getCompass_1`] = `Wire.begin()`;
+        gen.setupCodes_[`getCompass_2`] = `compass.init()`;
+        gen.setupCodes_[`getCompass_3`] = `compass.setSamplingRate(50)`;
+        gen.setupCodes_[`getCompass_4`] = `compass.setRange(2)`;
+        gen.setupCodes_[`getCompass_5`] = `compass.setOversampling(64)`;
+        let code = `compass.readHeading()`;
+        return [code, 0];
+    }
+
+    getTemperatureSensorArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.setupCodes_[`getTemperatureSensor`] = `pinMode(A0, INPUT)`;
+        let code = `(((analogRead(A0) * 50) / 10) - 500) / 10`;
+        return [code, 0];
+    }
+
+    getCarbonMonoxideSensorArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getCarbonMonoxideSensor`] = `#include "MQ7.h"`;
+        gen.definitions_[`getCarbonMonoxideSensor`] = `MQ7 mq7(15, 5.0);`;
+        gen.setupCodes_[`getCarbonMonoxideSensor`] = `pinMode(15, INPUT)`;
+        let code = `mq7.getPPM()`;
+        return [code, 0];
+    }
+
+    getAirPMSensorArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.definitions_[`getAirPMSensor`] = `\nfloat dustDensity(){\n  float voMeasured, calcVoltage;\n  digitalWrite(9,LOW);\n  delayMicroseconds(280);\n  voMeasured = analogRead(15);\n  delayMicroseconds(40);\n  digitalWrite(9,HIGH);\n  delayMicroseconds(9680);\n  calcVoltage = voMeasured * (5.0 / 1024.0);\n  return calcVoltage * 0.17 * 1000.0;\n}\n`;
+        gen.setupCodes_[`getAirPMSensor_1`] = `pinMode(15, INPUT)`;
+        gen.setupCodes_[`getAirPMSensor_2`] = `pinMode(9, OUTPUT)`;
+        let code = `dustDensity()`;
         return [code, 0];
     }
 }
