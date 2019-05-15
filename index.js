@@ -133,7 +133,7 @@ class BrainGOExtension{
                             menu: 'servoPort'
                         },
                         VALUE: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.SLIDERSERVO,
                             defaultValue: 90
                         }
                     },
@@ -240,6 +240,47 @@ class BrainGOExtension{
                     func: 'setPin',
                     gen: {
                         arduino: this.setPinArduino
+                    }
+                },
+                { //setLCD
+                    opcode: 'setLCD',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.setLCD',
+                        default: 'set lcd row [ROW] col [COL] string [STR]'
+                    }),
+                    arguments: {
+                        ROW: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        COL: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1
+                        },
+                        STR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        }
+                    },
+                    func: 'setLCD',
+                    gen: {
+                        arduino: this.setLCDArduino
+                    }
+                },
+                { //clearLCD
+                    opcode: 'clearLCD',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.clearLCD',
+                        default: 'clear lcd'
+                    }),
+                    arguments: {},
+                    func: 'clearLCD',
+                    gen: {
+                        arduino: this.clearLCDArduino
                     }
                 },
                 { //getDigitalPin
@@ -471,11 +512,13 @@ class BrainGOExtension{
                 'en': {
                     'name': 'BrainGO',
                     'setMotor': 'set motor [PORT] speed (-255~255) [VALUE]',
-                    'setServo': 'set servo [PORT] angle (0~180) [VALUE]',
+                    'setServo': 'set servo [PORT] angle [VALUE]',
                     'setBuzzer': 'play tone on note [NOTE] beat [BEAT]',
                     'setLED': 'set led [COLOR] [SWITCH]',
                     'setLight': 'set light [COLOR] [SWITCH]',
                     'setPin': 'set pin [PIN] [SWITCH]',
+                    'setLCD': 'set lcd row [ROW] col [COL] string [STR]',
+                    'clearLCD': 'clear lcd',
                     'getDigitalPin': 'read digital pin [PIN]',
                     'getAnalogPin': 'read analog pin [PIN]',
                     'getLightSensor': 'light sensor [PORT]',
@@ -505,11 +548,13 @@ class BrainGOExtension{
                 'zh-tw': {
                     'name': 'BrainGO',
                     'setMotor': '設置馬達 [PORT] 轉速為 (-255~255) [VALUE]',
-                    'setServo': '設置舵機 [PORT] 角度 (0~180) [VALUE]',
+                    'setServo': '設置舵機 [PORT] 角度 [VALUE]',
                     'setBuzzer': '播放 音調為 [NOTE] 節拍為 [BEAT]',
                     'setLED': '設置LED [COLOR] [SWITCH]',
                     'setLight': '設置燈 [COLOR] [SWITCH]',
                     'setPin': '設置腳位 [PIN] [SWITCH]',
+                    'setLCD': '設置LCD 第 [ROW] 行 第 [COL] 個字 文字 [STR]',
+                    'clearLCD': '清除LCD內容',
                     'getDigitalPin': '讀取數位訊號腳位 [PIN]',
                     'getAnalogPin': '讀取類比訊號腳位 [PIN]',
                     'getLightSensor': '光感測器 [PORT]',
@@ -539,10 +584,6 @@ class BrainGOExtension{
             },
         };
     }
-
-    static BrainGOArduino (gen){
-        gen.includes_['BrainGO'] = '#include <MeMCore.h>';
-    };
 
     static MenuItemValue (key){
         let values = {
@@ -628,6 +669,20 @@ class BrainGOExtension{
         console.log(sw);
     }
 
+    setLCD (args){
+        console.log('setLCD');
+        let row = args.ROW;
+        let col = args.COL;
+        let str = args.STR;
+        console.log(row);
+        console.log(col);
+        console.log(str);
+    }
+
+    clearLCD (args){
+        console.log('clearLCD');
+    }
+
     getDigitalPin (args){
         console.log('getDigitalPin');
         let pin = args.PIN;
@@ -687,6 +742,18 @@ class BrainGOExtension{
     }
 
     /************************************************** Arduino **************************************************/
+
+    static BrainGOArduino (gen){
+        gen.includes_['BrainGO'] = '#include <MeMCore.h>';
+    }
+
+    static LCDArduino (gen){
+        gen.includes_[`LCD`] = `#include "LiquidCrystal_I2C.h"`;
+        gen.definitions_[`LCD`] = `LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
+        gen.setupCodes_[`LCD_1`] = `lcd.begin(16, 2)`;
+        gen.setupCodes_[`LCD_2`] = `lcd.backlight()`;
+    }
+
     setMotorArduino (gen, block){
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         const value = gen.valueToCode(block, 'VALUE');
@@ -740,6 +807,24 @@ class BrainGOExtension{
         BrainGOExtension.BrainGOArduino(gen);
         gen.setupCodes_[`setPin_${pin}`] = `pinMode(${pin}, OUTPUT)`;
         let code = gen.line(`digitalWrite(${pin}, ${sw})`);
+        return code;
+    }
+
+    setLCDArduino (gen, block){
+        const row = gen.valueToCode(block, 'ROW');
+        const col = gen.valueToCode(block, 'COL');
+        const str = gen.valueToCode(block, 'STR');
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.LCDArduino(gen);
+        gen.definitions_[`setLCD`] = `\nvoid setLCD(int row, int col, String str){\n  lcd.setCursor(row, col);\n  lcd.print(str.c_str());\n}\n`;
+        let code = gen.line(`setLCD(${row}, ${col}, String(${str}))`);
+        return code;
+    }
+
+    clearLCDArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.LCDArduino(gen);
+        let code = gen.line(`lcd.clear()`);
         return code;
     }
 
