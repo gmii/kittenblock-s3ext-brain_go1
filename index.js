@@ -416,6 +416,26 @@ class BrainGOExtension{
                     gen: {
                         arduino: this.getAirPMSensorArduino
                     }
+                },
+                { //getDHT11
+                    opcode: 'getDHT11',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getDHT11',
+                        default: 'DHT11 [OPTION]'
+                    }),
+                    arguments: {
+                        OPTION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'DHT11Temperature',
+                            menu: 'DHT11Option'
+                        }
+                    },
+                    func: 'getDHT11',
+                    gen: {
+                        arduino: this.getDHT11Arduino
+                    }
                 }
             ],
             
@@ -443,7 +463,8 @@ class BrainGOExtension{
                 'lightSensorPort': ['lightSensorRed', 'lightSensorGreen'],
                 'rgbSensorColor': ['rgbSensorRed', 'rgbSensorGreen', 'rgbSensorBlue'],
                 'ultrasonicSensorPort': ['ultrasonicSensorWhite', 'ultrasonicSensorBlue'],
-                '3AxisGyroAxis': ['3AxisGyroXAxis', '3AxisGyroYAxis', '3AxisGyroZAxis']
+                '3AxisGyroAxis': ['3AxisGyroXAxis', '3AxisGyroYAxis', '3AxisGyroZAxis'],
+                'DHT11Option': ['DHT11Temperature', 'DHT11Humidity']
             },
 
             translation_map: {
@@ -478,7 +499,8 @@ class BrainGOExtension{
                     'lightSensorPort': {'lightSensorRed': 'red port', 'lightSensorGreen': 'green port'},
                     'rgbSensorColor': {'rgbSensorRed': 'red', 'rgbSensorGreen': 'green', 'rgbSensorBlue': 'blue'},
                     'ultrasonicSensorPort': {'ultrasonicSensorWhite': 'white port', 'ultrasonicSensorBlue': 'blue port'},
-                    '3AxisGyroAxis': {'3AxisGyroXAxis': 'X-Axis', '3AxisGyroYAxis': 'Y-Axis', '3AxisGyroZAxis': 'Z-Axis'}
+                    '3AxisGyroAxis': {'3AxisGyroXAxis': 'X-Axis', '3AxisGyroYAxis': 'Y-Axis', '3AxisGyroZAxis': 'Z-Axis'},
+                    'DHT11Option': {'DHT11Temperature': 'temperature', 'DHT11Humidity': 'humidity'}
                 },
                 'zh-tw': {
                     'name': 'BrainGO',
@@ -511,7 +533,8 @@ class BrainGOExtension{
                     'lightSensorPort': {'lightSensorRed': '紅色連接埠', 'lightSensorGreen': '綠色連接埠'},
                     'rgbSensorColor': {'rgbSensorRed': '紅色', 'rgbSensorGreen': '綠色', 'rgbSensorBlue': '藍色'},
                     'ultrasonicSensorPort': {'ultrasonicSensorWhite': '白色連接埠', 'ultrasonicSensorBlue': '藍色連接埠'},
-                    '3AxisGyroAxis': {'3AxisGyroXAxis': 'X軸', '3AxisGyroYAxis': 'Y軸', '3AxisGyroZAxis': 'Z軸'}
+                    '3AxisGyroAxis': {'3AxisGyroXAxis': 'X軸', '3AxisGyroYAxis': 'Y軸', '3AxisGyroZAxis': 'Z軸'},
+                    'DHT11Option': {'DHT11Temperature': '溫度', 'DHT11Humidity': '濕度'}
                 }
             },
         };
@@ -545,7 +568,8 @@ class BrainGOExtension{
             'lightSensorRed': 9, 'lightSensorGreen': 10,
             'rgbSensorRed': 0, 'rgbSensorGreen': 1, 'rgbSensorBlue': 2,
             'ultrasonicSensorWhite': 12, 'ultrasonicSensorBlue': 13,
-            '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3
+            '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3,
+            'DHT11Temperature': 0, 'DHT11Humidity': 1
         };
         let value = values[key];
         if (value == undefined){
@@ -654,6 +678,12 @@ class BrainGOExtension{
 
     getAirPMSensor (args){
         console.log('getAirPMSensor');
+    }
+
+    getDHT11  (args){
+        console.log('getDHT11');
+        let option = BrainGOExtension.MenuItemValue(args.OPTION);
+        console.log(option);
     }
 
     /************************************************** Arduino **************************************************/
@@ -801,6 +831,15 @@ class BrainGOExtension{
         gen.setupCodes_[`getAirPMSensor_1`] = `pinMode(15, INPUT)`;
         gen.setupCodes_[`getAirPMSensor_2`] = `pinMode(9, OUTPUT)`;
         let code = `dustDensity()`;
+        return [code, 0];
+    }
+
+    getDHT11Arduino (gen, block){
+        const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getDHT11`] = `#include "SimpleDHT.h"`;
+        gen.definitions_[`getDHT11`] = `SimpleDHT11 dht11(16);\n\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
+        let code = `getDHT11(${option})`;
         return [code, 0];
     }
 }
