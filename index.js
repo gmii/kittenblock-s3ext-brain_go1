@@ -477,6 +477,72 @@ class BrainGOExtension{
                     gen: {
                         arduino: this.getDHT11Arduino
                     }
+                },
+                { //isBluetoothAvailable
+                    opcode: 'isBluetoothAvailable',
+                    blockType: BlockType.BOOLEAN,
+
+                    text: formatMessage({
+                        id: 'BrainGO.isBluetoothAvailable',
+                        default: 'is bluetooth available'
+                    }),
+                    arguments: {},
+                    func: 'isBluetoothAvailable',
+                    gen: {
+                        arduino: this.isBluetoothAvailableArduino
+                    }
+                },
+                { //readBluetoothLine
+                    opcode: 'readBluetoothLine',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.readBluetoothLine',
+                        default: 'read bluetooth line'
+                    }),
+                    arguments: {},
+                    func: 'readBluetoothLine',
+                    gen: {
+                        arduino: this.readBluetoothLineArduino
+                    }
+                },
+                { //writeBluetoothLine
+                    opcode: 'writeBluetoothLine',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.writeBluetoothLine',
+                        default: 'write bluetooth line [STR]'
+                    }),
+                    arguments: {
+                        STR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        }
+                    },
+                    func: 'writeBluetoothLine',
+                    gen: {
+                        arduino: this.writeBluetoothLineArduino
+                    }
+                },
+                { //isBluetoothReadLine
+                    opcode: 'isBluetoothReadLine',
+                    blockType: BlockType.BOOLEAN,
+
+                    text: formatMessage({
+                        id: 'BrainGO.isBluetoothReadLine',
+                        default: 'is bluetooth read line [STR]'
+                    }),
+                    arguments: {
+                        STR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        }
+                    },
+                    func: 'isBluetoothReadLine',
+                    gen: {
+                        arduino: this.isBluetoothReadLineArduino
+                    }
                 }
             ],
             
@@ -529,6 +595,10 @@ class BrainGOExtension{
                     'getTemperatureSensor': 'temperature (°C)',
                     'getCarbonMonoxideSensor': 'carbon monoxide concentration (ppm)',
                     'getAirPMSensor': 'PM2.5 concentration (μg/m^3)',
+                    'isBluetoothAvailable': 'is bluetooth available',
+                    'readBluetoothLine': 'read bluetooth line',
+                    'writeBluetoothLine': 'write bluetooth line [STR]',
+                    'isBluetoothReadLine': 'is bluetooth read line [STR]',
                     // Menu Items
                     'motorPort': {'motorWhite': 'white port', 'motorBlue': 'blue port'},
                     'servoPort': {'servoGreen': 'green port', 'servoRed': 'red port'},
@@ -565,6 +635,10 @@ class BrainGOExtension{
                     'getTemperatureSensor': '溫度 (°C)',
                     'getCarbonMonoxideSensor': '一氧化碳濃度 (ppm)',
                     'getAirPMSensor': 'PM2.5濃度 (μg/m^3)',
+                    'isBluetoothAvailable': '藍牙有數據可讀',
+                    'readBluetoothLine': '讀取藍牙數據',
+                    'writeBluetoothLine': '發送藍牙數據 [STR]',
+                    'isBluetoothReadLine': '藍牙讀取為 [STR]',
                     // Menu Items
                     'motorPort': {'motorWhite': '白色連接埠', 'motorBlue': '藍色連接埠'},
                     'servoPort': {'servoGreen': '綠色連接埠', 'servoRed': '紅色連接埠'},
@@ -741,6 +815,26 @@ class BrainGOExtension{
         console.log(option);
     }
 
+    isBluetoothAvailable (args){
+        console.log('isBluetoothAvailable');
+    }
+
+    readBluetoothLine (args){
+        console.log('readBluetoothLine');
+    }
+
+    writeBluetoothLine (args){
+        console.log('writeBluetoothLine');
+        let str = args.STR;
+        console.log(str);
+    }
+
+    isBluetoothReadLine (args){
+        console.log('isBluetoothReadLine');
+        let str = args.STR;
+        console.log(str);
+    }
+
     /************************************************** Arduino **************************************************/
 
     static BrainGOArduino (gen){
@@ -752,6 +846,11 @@ class BrainGOExtension{
         gen.definitions_[`LCD`] = `LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
         gen.setupCodes_[`LCD_1`] = `lcd.begin(16, 2)`;
         gen.setupCodes_[`LCD_2`] = `lcd.backlight()`;
+    }
+
+    static BluetoothArduino (gen){
+        gen.definitions_[`Bluetooth`] = `MeSerial se;`;
+        gen.setupCodes_[`Bluetooth`] = `se.begin(9600)`;
     }
 
     setMotorArduino (gen, block){
@@ -925,6 +1024,36 @@ class BrainGOExtension{
         gen.includes_[`getDHT11`] = `#include "SimpleDHT.h"`;
         gen.definitions_[`getDHT11`] = `SimpleDHT11 dht11(16);\n\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
         let code = `getDHT11(${option})`;
+        return [code, 0];
+    }
+
+    isBluetoothAvailableArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.BluetoothArduino(gen);
+        let code = `se.dataLineAvailable()`;
+        return [code, 0];
+    }
+
+    readBluetoothLineArduino (gen, block){
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.BluetoothArduino(gen);
+        let code = `se.readDataLine()`;
+        return [code, 0];
+    }
+
+    writeBluetoothLineArduino (gen, block){
+        const str = gen.valueToCode(block, 'STR');
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.BluetoothArduino(gen);
+        let code = gen.line(`se.println(${str})`);
+        return code;
+    }
+
+    isBluetoothReadLineArduino (gen, block){
+        const str = gen.valueToCode(block, 'STR');
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.BluetoothArduino(gen);
+        let code = `String(se.readDataLine()) == String(${str})`;
         return [code, 0];
     }
 }
