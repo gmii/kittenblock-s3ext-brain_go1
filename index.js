@@ -841,18 +841,6 @@ class BrainGOExtension{
         gen.includes_['BrainGO'] = '#include <MeMCore.h>';
     }
 
-    static LCDArduino (gen){
-        gen.includes_[`LCD`] = `#include "LiquidCrystal_I2C.h"`;
-        gen.definitions_[`LCD`] = `LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
-        gen.setupCodes_[`LCD_1`] = `lcd.begin(16, 2)`;
-        gen.setupCodes_[`LCD_2`] = `lcd.backlight()`;
-    }
-
-    static BluetoothArduino (gen){
-        gen.definitions_[`Bluetooth`] = `MeSerial se;`;
-        gen.setupCodes_[`Bluetooth`] = `se.begin(9600)`;
-    }
-
     setMotorArduino (gen, block){
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         const value = gen.valueToCode(block, 'VALUE');
@@ -1032,6 +1020,11 @@ class BrainGOExtension{
         gen.definitions_[`getDHT11`] = `SimpleDHT11 dht11(16);\n\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
         let code = `getDHT11(${option})`;
         return [code, 0];
+    }
+
+    static BluetoothArduino (gen){
+        gen.definitions_[`Bluetooth`] = `MeSerial se;`;
+        gen.setupCodes_[`Bluetooth`] = `se.begin(9600)`;
     }
 
     isBluetoothAvailableArduino (gen, block){
