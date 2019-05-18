@@ -109,7 +109,7 @@ class BrainGOExtension{
                             menu: 'motorPort'
                         },
                         VALUE: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.SLIDER,
                             defaultValue: 0
                         }
                     },
@@ -577,7 +577,7 @@ class BrainGOExtension{
             translation_map: {
                 'en': {
                     'name': 'BrainGO',
-                    'setMotor': 'set motor [PORT] speed (-255~255) [VALUE]',
+                    'setMotor': 'set motor [PORT] speed [VALUE]',
                     'setServo': 'set servo [PORT] angle [VALUE]',
                     'setBuzzer': 'play tone on note [NOTE] beat [BEAT]',
                     'setLED': 'set led [COLOR] [SWITCH]',
@@ -617,7 +617,7 @@ class BrainGOExtension{
                 },
                 'zh-tw': {
                     'name': 'BrainGO',
-                    'setMotor': '設置馬達 [PORT] 轉速為 (-255~255) [VALUE]',
+                    'setMotor': '設置馬達 [PORT] 轉速為 [VALUE]',
                     'setServo': '設置舵機 [PORT] 角度 [VALUE]',
                     'setBuzzer': '播放 音調為 [NOTE] 節拍為 [BEAT]',
                     'setLED': '設置LED [COLOR] [SWITCH]',
@@ -907,6 +907,13 @@ class BrainGOExtension{
         gen.setupCodes_[`setPin_${pin}`] = `pinMode(${pin}, OUTPUT)`;
         let code = gen.line(`digitalWrite(${pin}, ${sw})`);
         return code;
+    }
+
+    static LCDArduino (gen){
+        gen.includes_[`LCD`] = `#include "LiquidCrystal_I2C.h"`;
+        gen.definitions_[`LCD`] = `LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
+        gen.setupCodes_[`LCD_1`] = `lcd.begin(16, 2)`;
+        gen.setupCodes_[`LCD_2`] = `lcd.backlight()`;
     }
 
     setLCDArduino (gen, block){
