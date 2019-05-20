@@ -2,23 +2,10 @@
     "w", "設定私有雲端 IP:%s PORT:%n ID:%s PASSWORD:%s", "Owncloud","","","","",
     {
         "setup":"
-mySerial.begin(9600);\n
-Serial.begin(9600);\n
-mySerial.println(F(\"AT+CWMODE=1\"));\n
-delay(1000);\n
-mySerial.println(\"AT+CWJAP_DEF=\\\"\"+(String){2}+\"\\\",\\\"\"+\"{3}\"+\"\\\"\");\n
-delay(10000);\n
-mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\{0},{1}\");\n
-delay(1000);\n
-mySerial.println(\"AT+CIPMODE=1\");\n
-delay(1000);\n
-mySerial.println(\"AT+CIPSEND\");\n
-delay(1000);\n
-while(mySerial.available()){\n
-  Serial.println(mySerial.available());\n
-  mySerial.read();\n
-}\n
-Serial.println(mySerial.available());\n
+  mySerial.begin(9600);\n  mySerial.println(F("AT+CWMODE=1"));\n  delay(1000);\n  mySerial.println("AT+CWJAP_DEF=\\"" + ssid + "\\",\\"" + pwd + "\\"");\n  delay(10000);\n  mySerial.println("AT+CIPSTART=\\"TCP\\",\\"" + ip + "\\"," + port + "");\n  delay(1000);\n  mySerial.println("AT+CIPMODE=1");\n  delay(1000);\n  mySerial.println("AT+CIPSEND");\n  delay(1000);\n
+  while(mySerial.available()){\n
+    mySerial.read();\n
+  }\n
         ",
         "inc":"",
         "def":"

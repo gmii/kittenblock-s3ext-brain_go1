@@ -1148,24 +1148,31 @@ class BrainGOExtension{
         return [code, 0];
     }
 
+    static DHT11Arduino (gen){
+        gen.includes_[`DHT11`] = `#include "SimpleDHT.h"`;
+        gen.definitions_[`DHT11`] = `SimpleDHT11 dht11(16);`;
+    }
+
     getDHT11Arduino (gen, block){
         const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
         BrainGOExtension.BrainGOArduino(gen);
-        gen.includes_[`getDHT11`] = `#include "SimpleDHT.h"`;
-        gen.definitions_[`getDHT11`] = `SimpleDHT11 dht11(16);\n\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
+        BrainGOExtension.DHT11Arduino(gen);
+        gen.definitions_[`getDHT11`] = `\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
         let code = `getDHT11(${option})`;
         return [code, 0];
+    }
+
+    static GPSArduino (gen){
+        gen.includes_[`GPS`] = `#include <SoftwareSerial.h>\n#include "TinyGPSPlus.h"`;
+        gen.definitions_[`GPS`] = `SoftwareSerial serial_collection(3,2);\nTinyGPSPlus gps;`;
+        gen.setupCodes_[`GPS`] = `serial_collection.begin(9600)`;
     }
 
     getGPSArduino (gen, block){
         const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
         BrainGOExtension.BrainGOArduino(gen);
-        gen.includes_[`getGPS`] = `#include <SoftwareSerial.h>`;
-        gen.includes_[`getGPS`] = `#include "TinyGPSPlus.h"`;
-        gen.definitions_[`getGPS_1`] = `SoftwareSerial serial_collection(3,2);`;
-        gen.definitions_[`getGPS_2`] = `TinyGPSPlus gps;`;
-        gen.definitions_[`getGPS_3`] = `\ndouble getGPS(int option){\n  while(serial_collection.available()){\n    gps.encode(serial_collection.read());\n  }\n  if(option == 0){\n    return gps.location.lng();\n  }else if(option == 1){\n    return gps.location.lat();\n  }else if(option == 2){\n    return gps.altitude.feet();\n  }\n}\n`;
-        gen.setupCodes_[`getGPS`] = `serial_collection.begin(9600)`;
+        BrainGOExtension.GPSArduino(gen);
+        gen.definitions_[`getGPS`] = `\ndouble getGPS(int option){\n  while(serial_collection.available()){\n    gps.encode(serial_collection.read());\n  }\n  if(option == 0){\n    return gps.location.lng();\n  }else if(option == 1){\n    return gps.location.lat();\n  }else if(option == 2){\n    return gps.altitude.feet();\n  }\n}\n`;
         let code = `getGPS(${option})`;
         return [code, 0];
     }
@@ -1216,13 +1223,19 @@ class BrainGOExtension{
         return code;
     }
 
+    static CloudArduino (gen){
+        gen.definitions_[`Cloud`] = `SoftwareSerial mySerial(13, 12);`;
+    }
+
     setupCloudArduino (gen, block){
         const ssid = gen.valueToCode(block, 'SSID');
         const pwd = gen.valueToCode(block, 'PWD');
         const ip = gen.valueToCode(block, 'IP');
         const port = gen.valueToCode(block, 'PORT');
         BrainGOExtension.BrainGOArduino(gen);
-        let code = gen.line(`${ssid}, ${pwd}, ${ip}, ${port}`);
+        BrainGOExtension.CloudArduino(gen);
+        gen.definitions_[`setupCloud`] = `\nvoid setupCloud(String ssid, String pwd, String ip, int port){\n  mySerial.begin(9600);\n  mySerial.println(F("AT+CWMODE=1"));\n  delay(1000);\n  mySerial.println("AT+CWJAP_DEF=\\"" + ssid + "\\",\\"" + pwd + "\\"");\n  delay(10000);\n  mySerial.println("AT+CIPSTART=\\"TCP\\",\\"" + ip + "\\"," + String(port);\n  delay(1000);\n  mySerial.println("AT+CIPMODE=1");\n  delay(1000);\n  mySerial.println("AT+CIPSEND");\n  delay(1000);\n}\n`;
+        let code = gen.line(`setupCloud(String(${ssid}), String(${pwd}), String(${ip}), ${port})`);
         return code;
     }
 }
