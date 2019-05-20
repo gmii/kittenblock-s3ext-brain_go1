@@ -27,9 +27,9 @@ heading                       | getCompass
 LCD_initial                   | x
 LCD_show                      | setLCD
 LCD_clear                     | clearLCD
-setupWifi                     | 
-setWifiFields                 | 
-sendFieldData                 | 
+setupWifi                     | connectWiFi
+setWifiFields                 | uploadWiFiField
+sendFieldData                 | ↑
 fingerPrint                   | 
 DHT11_Init                    | x
 DHT11_Temp                    | getDHT11
@@ -38,7 +38,7 @@ GPS_senser                    | x
 Longtitude                    | getGPS
 Latitude                      | ↑
 Altitude Feet                 | ↑
-Owncloud                      | 
-updata                        | 
-backdata                      | 
-val                           | 
+Owncloud                      | setupCloud
+updata                        | uploadCloud
+backdata                      | getCloudReturnValues
+val                           | ↑

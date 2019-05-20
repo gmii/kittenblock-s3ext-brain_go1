@@ -24,29 +24,31 @@
         char port_C = 0;\n
         int Hard_or_Soft = {3};\n
         SoftwareSerial espSerial(3,2);\n
-        String espData(String command, const int timeout, boolean debug) {\n
-            String response = \"\";\n
-            if({3} == 1){\n
-                espSerial.println(command);\n
-            }else{\n
-                Serial.println(command);\n
-            }\n
-            long int time = millis();\n
-            while ((time + timeout) > millis()) {\n
-                if({3} == 1){//soft\n
-                    while (espSerial.available()) {\n
-                    char c = espSerial.read();\n
-                    response += c;//soft\n}// soft end
-                }\n
-                if({3} == 0){//hard\n
-                    while (Serial.available()) {\n
-                        char c = Serial.read();\n
-                        response += c;//hard\n
-                    }//hard end\n
-                }\n
-            } // while end\n
-            return response;\n
-        }// espData end\n
+        
+        
+String espData(String command, const int timeout, boolean, int mode) {\n
+  String response = "";\n
+  if(mode == 0){\n
+    Serial.println(command);\n
+  }else{\n
+    espSerial.println(command);\n
+  }\n
+  long int time = millis();\n
+  while ((time + timeout) > millis()){\n
+    if(mode == 0){
+      while (Serial.available()){\n
+        char c = Serial.read();\n
+        response += c;\n
+      }\n
+    }\n
+    else if(mode == 1){\n
+      while (espSerial.available()){\n
+        char c = espSerial.read();\n
+        response += c;\n
+      }\n
+    }\n
+  }\n
+  return response;\n}\n
     ",
     "work":"",
     "loop":"
@@ -90,3 +92,5 @@
         delay(5000);\n
     ",
 }
+
+void uploadWiFiField(String name, int value){\n  String sendData = "GET /update?api_key=" + wifi_api + String("&") + name + String("=") + String(value);\n  espData("AT+CIPMUX=1", 1000);\n  espData("AT+CIPSTART=0,\\"TCP\\",\\"" + wifi_host + String("\\",") + String(wifi_port), 1000);\n  espData("AT+CIPSEND=0," + String(sendData.length() + 4), 1000);\n  WIFI_SERIAL.find(">");\n  WIFI_SERIAL.println(sendData);\n  espData("AT+CIPCLOSE=0", 1000);\n  delay(5000);\n}\n

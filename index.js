@@ -600,6 +600,29 @@ class BrainGOExtension{
                         arduino: this.connectWiFiArduino
                     }
                 },
+                { //uploadWiFiField
+                    opcode: 'uploadWiFiField',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.uploadWiFiField',
+                        default: 'upload WiFi field name [NAME] value [VALUE]'
+                    }),
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
+                    func: 'uploadWiFiField',
+                    gen: {
+                        arduino: this.uploadWiFiFieldArduino
+                    }
+                },
                 { //setupCloud
                     opcode: 'setupCloud',
                     blockType: BlockType.COMMAND,
@@ -629,6 +652,57 @@ class BrainGOExtension{
                     func: 'setupCloud',
                     gen: {
                         arduino: this.setupCloudArduino
+                    }
+                },
+                { //uploadCloud
+                    opcode: 'uploadCloud',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.uploadCloud',
+                        default: 'upload cloud [A] [B] [C] [D]'
+                    }),
+                    arguments: {
+                        A: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        B: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        C: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        D: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
+                    func: 'uploadCloud',
+                    gen: {
+                        arduino: this.uploadCloudArduino
+                    }
+                },
+                { //getCloudReturnValues
+                    opcode: 'getCloudReturnValues',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getCloudReturnValues',
+                        default: 'get cloud return values [OPTION]'
+                    }),
+                    arguments: {
+                        OPTION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'CloudReturnValuesNum',
+                            menu: 'CloudReturnValuesOPTION'
+                        }
+                    },
+                    func: 'getCloudReturnValues',
+                    gen: {
+                        arduino: this.getCloudReturnValuesArduino
                     }
                 }
             ],
@@ -660,7 +734,8 @@ class BrainGOExtension{
                 '3AxisGyroAxis': ['3AxisGyroXAxis', '3AxisGyroYAxis', '3AxisGyroZAxis'],
                 'DHT11Option': ['DHT11Temperature', 'DHT11Humidity'],
                 'WiFiMode': ['WiFiModeHardware', 'WiFiModeSoftware'],
-                'GPSOption': ['GPSLongitude', 'GPSLatitude', 'GPSAltitude']
+                'GPSOption': ['GPSLongitude', 'GPSLatitude', 'GPSAltitude'],
+                'CloudReturnValuesOPTION': ['CloudReturnValuesRed', 'CloudReturnValuesGreen', 'CloudReturnValuesBlue', 'CloudReturnValuesNum']
             },
 
             translation_map: {
@@ -690,8 +765,11 @@ class BrainGOExtension{
                     'readBluetoothLine': 'read bluetooth line',
                     'writeBluetoothLine': 'write bluetooth line [STR]',
                     'isBluetoothReadLine': 'is bluetooth read line [STR]',
-                    'connectWiFi': 'connect wifi ssid [SSID] password [PWD] baudrate [BAUD] mode [MODE] api [API]',
-                    'setupCloud': 'setup cloud wifi ssid [SSID] password [PWD] ip [IP] port [PORT]',
+                    'connectWiFi': 'connect WiFi ssid [SSID] password [PWD] baudrate [BAUD] mode [MODE] api [API]',
+                    'uploadWiFiField': 'upload WiFi field name [NAME] value [VALUE]',
+                    'setupCloud': 'setup cloud WiFi ssid [SSID] password [PWD] ip [IP] port [PORT]',
+                    'uploadCloud': 'upload cloud [A] [B] [C] [D]',
+                    'getCloudReturnValues': 'get cloud return values [OPTION]',
                     // Menu Items
                     'motorPort': {'motorWhite': 'white port', 'motorBlue': 'blue port'},
                     'servoPort': {'servoGreen': 'green port', 'servoRed': 'red port'},
@@ -708,7 +786,8 @@ class BrainGOExtension{
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X-Axis', '3AxisGyroYAxis': 'Y-Axis', '3AxisGyroZAxis': 'Z-Axis'},
                     'DHT11Option': {'DHT11Temperature': 'temperature', 'DHT11Humidity': 'humidity'},
                     'WiFiMode': {'WiFiModeHardware': 'hardward', 'WiFiModeSoftware': 'software'},
-                    'GPSOption': {'GPSLongitude': 'longitude', 'GPSLatitude': 'latitude', 'GPSAltitude': 'altitude'}
+                    'GPSOption': {'GPSLongitude': 'longitude', 'GPSLatitude': 'latitude', 'GPSAltitude': 'altitude'},
+                    'CloudReturnValuesOPTION': {'CloudReturnValuesRed': 'red', 'CloudReturnValuesGreen': 'green', 'CloudReturnValuesBlue': 'blue', 'CloudReturnValuesNum': 'number'}
                 },
                 'zh-tw': {
                     'name': 'BrainGO',
@@ -737,7 +816,10 @@ class BrainGOExtension{
                     'writeBluetoothLine': '發送藍牙數據 [STR]',
                     'isBluetoothReadLine': '藍牙讀取為 [STR]',
                     'connectWiFi': '連線WiFi 名稱 [SSID] 密碼 [PWD] 鮑率 [BAUD] 模式 [MODE] API [API]',
+                    'uploadWiFiField': '上傳WiFi欄位 名稱 [NAME] 數值 [VALUE]',
                     'setupCloud': '設定私有雲端 WiFi名稱 [SSID] 密碼 [PWD] 網路位址 [IP] 連接埠 [PORT]',
+                    'uploadCloud': '上傳資料 [A] [B] [C] [D] 至私有雲端',
+                    'getCloudReturnValues': '私有雲端回傳資料 [OPTION]',
                     // Menu Items
                     'motorPort': {'motorWhite': '白色連接埠', 'motorBlue': '藍色連接埠'},
                     'servoPort': {'servoGreen': '綠色連接埠', 'servoRed': '紅色連接埠'},
@@ -754,7 +836,8 @@ class BrainGOExtension{
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X軸', '3AxisGyroYAxis': 'Y軸', '3AxisGyroZAxis': 'Z軸'},
                     'DHT11Option': {'DHT11Temperature': '溫度', 'DHT11Humidity': '濕度'},
                     'WiFiMode': {'WiFiModeHardware': '硬體', 'WiFiModeSoftware': '軟體'},
-                    'GPSOption': {'GPSLongitude': '經度', 'GPSLatitude': '緯度', 'GPSAltitude': '海拔'}
+                    'GPSOption': {'GPSLongitude': '經度', 'GPSLatitude': '緯度', 'GPSAltitude': '海拔'},
+                    'CloudReturnValuesOPTION': {'CloudReturnValuesRed': '紅色', 'CloudReturnValuesGreen': '綠色', 'CloudReturnValuesBlue': '藍色', 'CloudReturnValuesNum': '數值'}
                 }
             },
         };
@@ -787,7 +870,8 @@ class BrainGOExtension{
             '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3,
             'DHT11Temperature': 0, 'DHT11Humidity': 1,
             'GPSLongitude': 0, 'GPSLatitude': 1, 'GPSAltitude': 2,
-            'WiFiModeHardware': 0, 'WiFiModeSoftware': 1
+            'WiFiModeHardware': 0, 'WiFiModeSoftware': 1,
+            'CloudReturnValuesRed': 'cloud_red', 'CloudReturnValuesGreen': 'cloud_green', 'CloudReturnValuesBlue': 'cloud_blue', 'CloudReturnValuesNum': 'cloud_num'
         };
         let value = values[key];
         if (value == undefined){
@@ -957,6 +1041,14 @@ class BrainGOExtension{
         console.log(mode);
         console.log(api);
     }
+
+    uploadWiFiField (args){
+        console.log('uploadWiFiField');
+        let name = args.NAME;
+        let value = args.VALUE;
+        console.log(name);
+        console.log(pwd);
+    }
     
     setupCloud (args){
         console.log('setupCloud');
@@ -969,6 +1061,25 @@ class BrainGOExtension{
         console.log(ip);
         console.log(port);
     }
+
+    uploadCloud (args){
+        console.log('uploadCloud');
+        let a = args.A;
+        let b = args.B;
+        let c = args.C;
+        let d = args.D;
+        console.log(a);
+        console.log(b);
+        console.log(c);
+        console.log(d);
+    }
+
+    getCloudReturnValues (args){
+        console.log('getCloudReturnValues');
+        let option = BrainGOExtension.MenuItemValue(args.OPTION);
+        console.log(option);
+    }
+
 
     /************************************************** Arduino **************************************************/
 
@@ -1219,7 +1330,25 @@ class BrainGOExtension{
         const mode = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'MODE'));
         const api = gen.valueToCode(block, 'API');
         BrainGOExtension.BrainGOArduino(gen);
-        let code = gen.line(`${ssid}, ${pwd}, ${baud}, ${mode}, ${api}`);
+        if (mode == 0){
+            gen.includes_[`connectWiFi`] = `#define WIFI_SERIAL Serial`;
+            gen.setupCodes_[`connectWiFi_MODE${mode}`] = `Serial.begin(9600)`;
+        }else if (mode == 1){
+            gen.includes_[`connectWiFi`] = `#define WIFI_SERIAL espSerial`;
+            gen.definitions_[`connectWiFi_MODE${mode}`] = `SoftwareSerial espSerial(3,2);`;
+            gen.setupCodes_[`connectWiFi_MODE${mode}`] = `espSerial.begin({2})`;
+        }
+        gen.definitions_[`connectWiFi`] = `String wifi_host = String("api.thingspeak.com");\nString wifi_port = String("80");\nString wifi_api = String(${api});\n\nString espData(String command, const int timeout) {\n  String response = "";\n  WIFI_SERIAL.println(command);\n  long int time = millis();\n  while ((time + timeout) > millis()){\n    while (WIFI_SERIAL.available()){\n      char c = WIFI_SERIAL.read();\n      response += c;\n    }\n  }\n  return response;\n}\n\nvoid connectWiFi(String ssid, String pwd){\n  espData("AT+RST", 1000);\n  espData("AT+CWMODE=1", 1000);\n  espData("AT+CWJAP=\\"" + ssid + String("\\",\\"") + pwd + String("\\""), 1000);\n  delay(1000);\n}\n`;
+        let code = gen.line(`connectWiFi(String(${ssid}), String(${pwd}))`);
+        return code;
+    }
+
+    uploadWiFiFieldArduino (gen, block){
+        const name = gen.valueToCode(block, 'NAME');
+        const value = gen.valueToCode(block, 'VALUE');
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.definitions_[`uploadWiFiField`] = `\nvoid uploadWiFiField(String name, int value){\n  String sendData = "GET /update?api_key=" + wifi_api + String("&") + name + String("=") + String(value);\n  espData("AT+CIPMUX=1", 1000);\n  espData("AT+CIPSTART=0,\\"TCP\\",\\"" + wifi_host + String("\\",") + String(wifi_port), 1000);\n  espData("AT+CIPSEND=0," + String(sendData.length() + 4), 1000);\n  WIFI_SERIAL.find(">");\n  WIFI_SERIAL.println(sendData);\n  espData("AT+CIPCLOSE=0", 1000);\n  delay(5000);\n}\n`;
+        let code = gen.line(`uploadWiFiField(String(${name}), ${value})`);
         return code;
     }
 
@@ -1234,9 +1363,31 @@ class BrainGOExtension{
         const port = gen.valueToCode(block, 'PORT');
         BrainGOExtension.BrainGOArduino(gen);
         BrainGOExtension.CloudArduino(gen);
-        gen.definitions_[`setupCloud`] = `\nvoid setupCloud(String ssid, String pwd, String ip, int port){\n  mySerial.begin(9600);\n  mySerial.println(F("AT+CWMODE=1"));\n  delay(1000);\n  mySerial.println("AT+CWJAP_DEF=\\"" + ssid + "\\",\\"" + pwd + "\\"");\n  delay(10000);\n  mySerial.println("AT+CIPSTART=\\"TCP\\",\\"" + ip + "\\"," + String(port);\n  delay(1000);\n  mySerial.println("AT+CIPMODE=1");\n  delay(1000);\n  mySerial.println("AT+CIPSEND");\n  delay(1000);\n}\n`;
+        gen.definitions_[`setupCloud`] = `\nvoid setupCloud(String ssid, String pwd, String ip, int port){\n  mySerial.begin(9600);\n  mySerial.println(F("AT+CWMODE=1"));\n  delay(1000);\n  mySerial.println("AT+CWJAP_DEF=\\"" + ssid + String("\\",\\"") + pwd + String("\\""));\n  delay(10000);\n  mySerial.println("AT+CIPSTART=\\"TCP\\",\\"" + ip + String("\\",") + String(port));\n  delay(1000);\n  mySerial.println("AT+CIPMODE=1");\n  delay(1000);\n  mySerial.println("AT+CIPSEND");\n  delay(1000);\n}\n`;
         let code = gen.line(`setupCloud(String(${ssid}), String(${pwd}), String(${ip}), ${port})`);
         return code;
+    }
+
+    uploadCloudArduino (gen, block){
+        const a = gen.valueToCode(block, 'A');
+        const b = gen.valueToCode(block, 'B');
+        const c = gen.valueToCode(block, 'C');
+        const d = gen.valueToCode(block, 'D');
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.CloudArduino(gen);
+        gen.definitions_[`uploadCloud`] = `\nvoid uploadCloud(int a, int b, int c, int d){\n  a *= 100; b *= 100; c *= 100; d *= 100;\n  unsigned char buff[36];\n  buff[0] = a / 100000; buff[1] = a / 10000 % 10; buff[2] = a / 1000 % 10; buff[3] = a / 100 % 10; buff[4] = a / 10 % 10; buff[5] = a % 10;\n  buff[6] = b / 100000; buff[7] = b / 10000 % 10; buff[8] = b / 1000 % 10; buff[9] = b / 100 % 10; buff[10] = b / 10 % 10; buff[11] = b % 10;\n  buff[12] = c / 100000; buff[13] = c / 10000 % 10; buff[14] = c / 1000 % 10; buff[15] = c / 100 % 10; buff[16] = c / 10 % 10; buff[17] = c % 10;\n  buff[18] = d / 100000; buff[19] = d / 10000 % 10; buff[20] = d / 1000 % 10; buff[21] = d / 100 % 10; buff[22] = d / 10 % 10; buff[23] = d % 10;\n  buff[24] = 0; buff[25] = 0; buff[26] = 0; buff[27] = 0; buff[28] = 0; buff[29] = 0; buff[30] = 0; buff[31] = 0; buff[32] = 0; buff[33] = 0; buff[34] = 0; buff[35] = 0;\n  for(int i = 0; i < 36; ++i){\n    mySerial.print(buff[i]);\n  }\n  delay(600);\n}\n`;
+        let code = gen.line(`uploadCloud(${a}, ${b}, ${c}, ${d})`);
+        return code;
+    }
+
+    getCloudReturnValuesArduino (gen, block){
+        const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
+        BrainGOExtension.BrainGOArduino(gen);
+        BrainGOExtension.CloudArduino(gen);
+        gen.definitions_[`getCloudReturnValues`] = `int cloud_red, cloud_green, cloud_blue;\ndouble cloud_num;\n\nvoid getCloudReturnValues(int &red, int &green, int &blue, double &num){\n  while(mySerial.available() >= 10){\n    if (mySerial.read() == 's'){\n      red = mySerial.read(); red -= 48;\n      green = mySerial.read(); green -= 48;\n      blue = mySerial.read(); blue -= 48;\n      int nums[6];\n      nums[0] = mySerial.read();\n      nums[1] = mySerial.read();\n      nums[2] = mySerial.read();\n      nums[3] = mySerial.read();\n      nums[4] = mySerial.read();\n      nums[5] = mySerial.read();\n      num = ((nums[0] - 48) * 100000 + (nums[1] - 48) * 10000 + (nums[2] - 48) * 1000 + (nums[3] - 48) * 100 + (nums[4] - 48) * 10 + (nums[5] - 48));\n      num /= 100;\n    }\n  }\n}\n`;
+        gen.loopCodes_[`getCloudReturnValues`] = `getCloudReturnValues(cloud_red, cloud_green, cloud_blue, cloud_num)`;
+        let code = `${option}`;
+        return [code, 0];
     }
 }
 
