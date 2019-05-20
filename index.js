@@ -478,6 +478,26 @@ class BrainGOExtension{
                         arduino: this.getDHT11Arduino
                     }
                 },
+                { //getGPS
+                    opcode: 'getGPS',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getGPS',
+                        default: 'gps [OPTION]'
+                    }),
+                    arguments: {
+                        OPTION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'GPSLongitude',
+                            menu: 'GPSOption'
+                        }
+                    },
+                    func: 'getGPS',
+                    gen: {
+                        arduino: this.getGPSArduino
+                    }
+                },
                 { //isBluetoothAvailable
                     opcode: 'isBluetoothAvailable',
                     blockType: BlockType.BOOLEAN,
@@ -543,6 +563,73 @@ class BrainGOExtension{
                     gen: {
                         arduino: this.isBluetoothReadLineArduino
                     }
+                },
+                { //connectWiFi
+                    opcode: 'connectWiFi',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.connectWiFi',
+                        default: 'connect wifi ssid [SSID] password [PWD] baudrate [BAUD] mode [MODE] api [API]'
+                    }),
+                    arguments: {
+                        SSID: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        PWD: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        BAUD: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 9600
+                        },
+                        MODE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 'WiFiModeHardware',
+                            menu: 'WiFiMode'
+                        },
+                        API: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'RIJZQTNUE1RLYEE6'
+                        }
+                    },
+                    func: 'connectWiFi',
+                    gen: {
+                        arduino: this.connectWiFiArduino
+                    }
+                },
+                { //setupCloud
+                    opcode: 'setupCloud',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'BrainGO.setupCloud',
+                        default: 'setup cloud wifi ssid [SSID] password [PWD] ip [IP] port [PORT]'
+                    }),
+                    arguments: {
+                        SSID: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        PWD: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        IP: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        PORT: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 3000
+                        }
+                    },
+                    func: 'setupCloud',
+                    gen: {
+                        arduino: this.setupCloudArduino
+                    }
                 }
             ],
             
@@ -571,7 +658,9 @@ class BrainGOExtension{
                 'rgbSensorColor': ['rgbSensorRed', 'rgbSensorGreen', 'rgbSensorBlue'],
                 'ultrasonicSensorPort': ['ultrasonicSensorWhite', 'ultrasonicSensorBlue'],
                 '3AxisGyroAxis': ['3AxisGyroXAxis', '3AxisGyroYAxis', '3AxisGyroZAxis'],
-                'DHT11Option': ['DHT11Temperature', 'DHT11Humidity']
+                'DHT11Option': ['DHT11Temperature', 'DHT11Humidity'],
+                'WiFiMode': ['WiFiModeHardware', 'WiFiModeSoftware'],
+                'GPSOption': ['GPSLongitude', 'GPSLatitude', 'GPSAltitude']
             },
 
             translation_map: {
@@ -595,10 +684,14 @@ class BrainGOExtension{
                     'getTemperatureSensor': 'temperature (°C)',
                     'getCarbonMonoxideSensor': 'carbon monoxide concentration (ppm)',
                     'getAirPMSensor': 'PM2.5 concentration (μg/m^3)',
+                    'getDHT11': 'DHT11 [OPTION]',
+                    'getGPS': 'gps [OPTION]',
                     'isBluetoothAvailable': 'is bluetooth available',
                     'readBluetoothLine': 'read bluetooth line',
                     'writeBluetoothLine': 'write bluetooth line [STR]',
                     'isBluetoothReadLine': 'is bluetooth read line [STR]',
+                    'connectWiFi': 'connect wifi ssid [SSID] password [PWD] baudrate [BAUD] mode [MODE] api [API]',
+                    'setupCloud': 'setup cloud wifi ssid [SSID] password [PWD] ip [IP] port [PORT]',
                     // Menu Items
                     'motorPort': {'motorWhite': 'white port', 'motorBlue': 'blue port'},
                     'servoPort': {'servoGreen': 'green port', 'servoRed': 'red port'},
@@ -613,7 +706,9 @@ class BrainGOExtension{
                     'rgbSensorColor': {'rgbSensorRed': 'red', 'rgbSensorGreen': 'green', 'rgbSensorBlue': 'blue'},
                     'ultrasonicSensorPort': {'ultrasonicSensorWhite': 'white port', 'ultrasonicSensorBlue': 'blue port'},
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X-Axis', '3AxisGyroYAxis': 'Y-Axis', '3AxisGyroZAxis': 'Z-Axis'},
-                    'DHT11Option': {'DHT11Temperature': 'temperature', 'DHT11Humidity': 'humidity'}
+                    'DHT11Option': {'DHT11Temperature': 'temperature', 'DHT11Humidity': 'humidity'},
+                    'WiFiMode': {'WiFiModeHardware': 'hardward', 'WiFiModeSoftware': 'software'},
+                    'GPSOption': {'GPSLongitude': 'longitude', 'GPSLatitude': 'latitude', 'GPSAltitude': 'altitude'}
                 },
                 'zh-tw': {
                     'name': 'BrainGO',
@@ -635,10 +730,14 @@ class BrainGOExtension{
                     'getTemperatureSensor': '溫度 (°C)',
                     'getCarbonMonoxideSensor': '一氧化碳濃度 (ppm)',
                     'getAirPMSensor': 'PM2.5濃度 (μg/m^3)',
+                    'getDHT11': 'DHT11 [OPTION]',
+                    'getGPS': 'GPS [OPTION]',
                     'isBluetoothAvailable': '藍牙有數據可讀',
                     'readBluetoothLine': '讀取藍牙數據',
                     'writeBluetoothLine': '發送藍牙數據 [STR]',
                     'isBluetoothReadLine': '藍牙讀取為 [STR]',
+                    'connectWiFi': '連線WiFi 名稱 [SSID] 密碼 [PWD] 鮑率 [BAUD] 模式 [MODE] API [API]',
+                    'setupCloud': '設定私有雲端 WiFi名稱 [SSID] 密碼 [PWD] 網路位址 [IP] 連接埠 [PORT]',
                     // Menu Items
                     'motorPort': {'motorWhite': '白色連接埠', 'motorBlue': '藍色連接埠'},
                     'servoPort': {'servoGreen': '綠色連接埠', 'servoRed': '紅色連接埠'},
@@ -653,7 +752,9 @@ class BrainGOExtension{
                     'rgbSensorColor': {'rgbSensorRed': '紅色', 'rgbSensorGreen': '綠色', 'rgbSensorBlue': '藍色'},
                     'ultrasonicSensorPort': {'ultrasonicSensorWhite': '白色連接埠', 'ultrasonicSensorBlue': '藍色連接埠'},
                     '3AxisGyroAxis': {'3AxisGyroXAxis': 'X軸', '3AxisGyroYAxis': 'Y軸', '3AxisGyroZAxis': 'Z軸'},
-                    'DHT11Option': {'DHT11Temperature': '溫度', 'DHT11Humidity': '濕度'}
+                    'DHT11Option': {'DHT11Temperature': '溫度', 'DHT11Humidity': '濕度'},
+                    'WiFiMode': {'WiFiModeHardware': '硬體', 'WiFiModeSoftware': '軟體'},
+                    'GPSOption': {'GPSLongitude': '經度', 'GPSLatitude': '緯度', 'GPSAltitude': '海拔'}
                 }
             },
         };
@@ -684,7 +785,9 @@ class BrainGOExtension{
             'rgbSensorRed': 0, 'rgbSensorGreen': 1, 'rgbSensorBlue': 2,
             'ultrasonicSensorWhite': 12, 'ultrasonicSensorBlue': 13,
             '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3,
-            'DHT11Temperature': 0, 'DHT11Humidity': 1
+            'DHT11Temperature': 0, 'DHT11Humidity': 1,
+            'GPSLongitude': 0, 'GPSLatitude': 1, 'GPSAltitude': 2,
+            'WiFiModeHardware': 0, 'WiFiModeSoftware': 1
         };
         let value = values[key];
         if (value == undefined){
@@ -815,6 +918,12 @@ class BrainGOExtension{
         console.log(option);
     }
 
+    getGPS (args){
+        console.log('getGPS');
+        let option = BrainGOExtension.MenuItemValue(args.OPTION);
+        console.log(option);
+    }
+
     isBluetoothAvailable (args){
         console.log('isBluetoothAvailable');
     }
@@ -833,6 +942,32 @@ class BrainGOExtension{
         console.log('isBluetoothReadLine');
         let str = args.STR;
         console.log(str);
+    }
+
+    connectWiFi (args){
+        console.log('connectWiFi');
+        let ssid = args.SSID;
+        let pwd = args.PWD;
+        let baud = args.BAUD;
+        let mode = BrainGOExtension.MenuItemValue(args.MODE);
+        let api = args.API;
+        console.log(ssid);
+        console.log(pwd);
+        console.log(baud);
+        console.log(mode);
+        console.log(api);
+    }
+    
+    setupCloud (args){
+        console.log('setupCloud');
+        let ssid = args.SSID;
+        let pwd = args.PWD;
+        let ip = args.IP;
+        let port = args.PORT;
+        console.log(ssid);
+        console.log(pwd);
+        console.log(ip);
+        console.log(port);
     }
 
     /************************************************** Arduino **************************************************/
@@ -1022,6 +1157,19 @@ class BrainGOExtension{
         return [code, 0];
     }
 
+    getGPSArduino (gen, block){
+        const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`getGPS`] = `#include <SoftwareSerial.h>`;
+        gen.includes_[`getGPS`] = `#include "TinyGPSPlus.h"`;
+        gen.definitions_[`getGPS_1`] = `SoftwareSerial serial_collection(3,2);`;
+        gen.definitions_[`getGPS_2`] = `TinyGPSPlus gps;`;
+        gen.definitions_[`getGPS_3`] = `\ndouble getGPS(int option){\n  while(serial_collection.available()){\n    gps.encode(serial_collection.read());\n  }\n  if(option == 0){\n    return gps.location.lng();\n  }else if(option == 1){\n    return gps.location.lat();\n  }else if(option == 2){\n    return gps.altitude.feet();\n  }\n}\n`;
+        gen.setupCodes_[`getGPS`] = `serial_collection.begin(9600)`;
+        let code = `getGPS(${option})`;
+        return [code, 0];
+    }
+
     static BluetoothArduino (gen){
         gen.definitions_[`Bluetooth`] = `MeSerial se;`;
         gen.setupCodes_[`Bluetooth`] = `se.begin(9600)`;
@@ -1055,6 +1203,27 @@ class BrainGOExtension{
         BrainGOExtension.BluetoothArduino(gen);
         let code = `String(se.readDataLine()) == String(${str})`;
         return [code, 0];
+    }
+
+    connectWiFiArduino (gen, block){
+        const ssid = gen.valueToCode(block, 'SSID');
+        const pwd = gen.valueToCode(block, 'PWD');
+        const baud = gen.valueToCode(block, 'BAUD');
+        const mode = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'MODE'));
+        const api = gen.valueToCode(block, 'API');
+        BrainGOExtension.BrainGOArduino(gen);
+        let code = gen.line(`${ssid}, ${pwd}, ${baud}, ${mode}, ${api}`);
+        return code;
+    }
+
+    setupCloudArduino (gen, block){
+        const ssid = gen.valueToCode(block, 'SSID');
+        const pwd = gen.valueToCode(block, 'PWD');
+        const ip = gen.valueToCode(block, 'IP');
+        const port = gen.valueToCode(block, 'PORT');
+        BrainGOExtension.BrainGOArduino(gen);
+        let code = gen.line(`${ssid}, ${pwd}, ${ip}, ${port}`);
+        return code;
     }
 }
 

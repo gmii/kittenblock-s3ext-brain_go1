@@ -1,0 +1,123 @@
+[
+    "w", "設定私有雲端 IP:%s PORT:%n ID:%s PASSWORD:%s", "Owncloud","","","","",
+    {
+        "setup":"
+mySerial.begin(9600);\n
+Serial.begin(9600);\n
+mySerial.println(F(\"AT+CWMODE=1\"));\n
+delay(1000);\n
+mySerial.println(\"AT+CWJAP_DEF=\\\"\"+(String){2}+\"\\\",\\\"\"+\"{3}\"+\"\\\"\");\n
+delay(10000);\n
+mySerial.println(\"AT+CIPSTART=\\\"TCP\\\",\\{0},{1}\");\n
+delay(1000);\n
+mySerial.println(\"AT+CIPMODE=1\");\n
+delay(1000);\n
+mySerial.println(\"AT+CIPSEND\");\n
+delay(1000);\n
+while(mySerial.available()){\n
+  Serial.println(mySerial.available());\n
+  mySerial.read();\n
+}\n
+Serial.println(mySerial.available());\n
+        ",
+        "inc":"",
+        "def":"
+unsigned char buff[36] ={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};\n
+int LED[9]={0,0,0,0,0,0,0,0,0};\n
+double val;\n
+SoftwareSerial mySerial(13, 12);\n
+        ",
+        "work":"",
+        "loop":"",
+    }
+],
+[
+    "w", "上傳資料%n,%n", "updata","","",
+    {
+        "setup":"",
+        "inc":"",
+        "def":"",
+        "work":"
+temp={0}*100;\n
+LDM1={1}*100;\n
+ADC1=ADC1*100;\n
+m1=m1*100;\n
+buff[0]=(int){0}/100000;\n
+buff[1]=(int){0}/10000%10;\n
+buff[2]=(int){0}/1000%10;\n
+buff[3]=(int){0}/100%10;\n
+buff[4]=(int){0}/10%10;\n
+buff[5]=(int){0}%10;\n
+buff[6]=(int){1}/100000;\n
+buff[7]=(int){1}/10000%10;\n
+buff[8]=(int){1}/1000%10;\n
+buff[9]=(int){1}/100%10;\n
+buff[10]=(int){1}/10%10;\n
+buff[11]=(int){1}%10;\n
+buff[12]=(int)m1/100000;\n
+buff[13]=(int)m1/10000%10;\n
+buff[14]=(int)m1/1000%10;\n
+buff[15]=(int)m1/100%10;\n
+buff[16]=(int)m1/10%10;\n
+buff[17]=(int)m1%10;\n
+buff[18]=(int)ADC1/100000;\n
+buff[19]=(int)ADC1/10000%10;\n
+buff[20]=(int)ADC1/1000%10;\n
+buff[21]=(int)ADC1/100%10;\n
+buff[22]=(int)ADC1/10%10;\n
+buff[23]=(int)ADC1%10;\n
+buff[24]=0;\nbuff[25]=0;\n
+buff[26]=0;\nbuff[27]=0;\n
+buff[28]=0;\nbuff[29]=0;\n
+buff[30]=0;\nbuff[31]=0;\n
+buff[32]=0;\nbuff[33]=0;\n
+buff[34]=0;\nbuff[35]=0;\n
+for(int i = 0;i<36;i++) {\n
+  mySerial.print(buff[i]);\n
+}\n
+delay(600);\n
+        ",
+        "loop":"",
+    }
+],
+[
+    "w", "計算資料回傳", "backdata",
+    {
+        "setup":"",
+        "inc":"",
+        "def":"",
+        "work":"
+if(mySerial.available()>21){\n
+  char Rxbuff[100];\n
+  for(int i=0;i<22;i++){\n
+    Rxbuff[i]=mySerial.read();\n
+  }\n
+  for(int i = 0 ; i<10;i++){\n
+    if(Rxbuff[i]=='s'){\n
+      LED[0]=Rxbuff[i+1];\n
+      LED[1]=Rxbuff[i+2];\n
+      LED[2]=Rxbuff[i+3];\n
+      LED[3]=Rxbuff[i+4];\n
+      LED[4]=Rxbuff[i+5];\n
+      LED[5]=Rxbuff[i+6];\n
+      LED[6]=Rxbuff[i+7];\n
+      LED[7]=Rxbuff[i+8];\n
+      LED[8]=Rxbuff[i+9];\n
+      val=((LED[3]-48)*100000+(LED[4]-48)*10000+(LED[5]-48)*1000+(LED[6]-48)*100+(LED[7]-48)*10+(LED[8]-48));\n
+    }\n
+  }\n
+}\n
+        ",
+        "loop":"",
+    }
+],
+[
+    "r", "回傳值", "val",
+    {
+        "setup":"",
+        "inc":"",
+        "def":"",
+        "work":"(val)",
+        "loop":"",
+    }
+],

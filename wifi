@@ -1,0 +1,92 @@
+{
+    "setup":"
+        Serial.begin(9600);\n
+        espSerial.begin({2});\n
+        espData(\"AT+RST\", 1000, DEBUG); //Reset the ESP8266 module\n
+        espData(\"AT+CWMODE=1\", 1000, DEBUG); //Set the ESP mode as station mode\n
+        espData(\"AT+CWJAP=\" + DQ + mySSID + DQ + \",\" + DQ + myPWD + DQ, 1000, DEBUG); //Connect to WiFi network\n
+        delay(1000);\n
+    ",
+    "inc":"
+        #define DEBUG true\n
+    ",
+    "def":"
+        String str_CWJAP=\"AT+CWJAP=\";\n
+        String DQ = String('\"');\n
+        String mySSID = String({0}); // WiFi SSID\n
+        String myPWD = String({1}); // WiFi Password\n
+        String myAPI = String({4}); // API Key\n
+        String myHOST = \"api.thingspeak.com\";\n
+        String myPORT = \"80\";\n
+        int trig;\n
+        char port_A = 0;\n
+        char port_B = 0;\n
+        char port_C = 0;\n
+        int Hard_or_Soft = {3};\n
+        SoftwareSerial espSerial(3,2);\n
+        String espData(String command, const int timeout, boolean debug) {\n
+            String response = \"\";\n
+            if({3} == 1){\n
+                espSerial.println(command);\n
+            }else{\n
+                Serial.println(command);\n
+            }\n
+            long int time = millis();\n
+            while ((time + timeout) > millis()) {\n
+                if({3} == 1){//soft\n
+                    while (espSerial.available()) {\n
+                    char c = espSerial.read();\n
+                    response += c;//soft\n}// soft end
+                }\n
+                if({3} == 0){//hard\n
+                    while (Serial.available()) {\n
+                        char c = Serial.read();\n
+                        response += c;//hard\n
+                    }//hard end\n
+                }\n
+            } // while end\n
+            return response;\n
+        }// espData end\n
+    ",
+    "work":"",
+    "loop":"
+        port_A = 13; port_B = 12;\n
+        pinMode(port_A,OUTPUT);\n
+        digitalWrite(port_A,LOW);\n
+        delayMicroseconds(2);\n
+        digitalWrite(port_A,HIGH);\n
+        delayMicroseconds(10);\n
+        pinMode(port_B,INPUT);\n
+        port_C = pulseIn(port_B,HIGH,30000)/58.0;\n
+    ",
+}
+
+{
+    "setup":"",
+    "inc":"",
+    "def":"
+        int sendVal{0};\n
+        String sendData = \"GET /update?api_key=\" + myAPI;\n
+    ",
+    "work":"",
+    "loop":"
+        sendVal{0} = {2};\n
+        sendData += String(\"&\") + String({1}) + String(\"=\") + String(sendVal{0});\n
+    ",
+}
+
+{
+    "setup":"",
+    "inc":"",
+    "def":"//hope for another better software to support extension\n",
+    "work":"",
+    "loop":"
+        espData(\"AT+CIPMUX=1\", 1000, DEBUG);\n
+        espData(\"AT+CIPSTART=0,\" + DQ + \"TCP\" + DQ + \",\" + DQ + myHOST + DQ + \",\" + myPORT, 1000, DEBUG);\n
+        espData(\"AT+CIPSEND=0,\" + String(sendData.length() + 4), 1000, DEBUG);\n
+        if(Hard_or_Soft == 1){\nespSerial.find(\">\");\nespSerial.println(sendData);\n}\n
+        else{\nSerial.find(\">\");\nSerial.println(sendData);\n}\n
+        espData(\"AT+CIPCLOSE=0\", 1000, DEBUG);\n
+        delay(5000);\n
+    ",
+}
