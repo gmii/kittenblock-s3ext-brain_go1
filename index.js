@@ -498,6 +498,29 @@ class BrainGOExtension{
                         arduino: this.getGPSArduino
                     }
                 },
+                { //getFingerPrint
+                    opcode: 'getFingerPrint',
+                    blockType: BlockType.BOOLEAN,
+
+                    text: formatMessage({
+                        id: 'BrainGO.getFingerPrint',
+                        default: 'finger print pin [PIN1] [PIN2]'
+                    }),
+                    arguments: {
+                        PIN1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 3
+                        },
+                        PIN2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2
+                        }
+                    },
+                    func: 'getFingerPrint',
+                    gen: {
+                        arduino: this.getFingerPrintArduino
+                    }
+                },
                 { //isBluetoothAvailable
                     opcode: 'isBluetoothAvailable',
                     blockType: BlockType.BOOLEAN,
@@ -761,6 +784,7 @@ class BrainGOExtension{
                     'getAirPMSensor': 'PM2.5 concentration (μg/m^3)',
                     'getDHT11': 'DHT11 [OPTION]',
                     'getGPS': 'gps [OPTION]',
+                    'getFingerPrint': 'finger print pin [PIN1] [PIN2]',
                     'isBluetoothAvailable': 'is bluetooth available',
                     'readBluetoothLine': 'read bluetooth line',
                     'writeBluetoothLine': 'write bluetooth line [STR]',
@@ -811,6 +835,7 @@ class BrainGOExtension{
                     'getAirPMSensor': 'PM2.5濃度 (μg/m^3)',
                     'getDHT11': 'DHT11 [OPTION]',
                     'getGPS': 'GPS [OPTION]',
+                    'getFingerPrint': '指紋辨識 腳位 [PIN1] [PIN2]',
                     'isBluetoothAvailable': '藍牙有數據可讀',
                     'readBluetoothLine': '讀取藍牙數據',
                     'writeBluetoothLine': '發送藍牙數據 [STR]',
@@ -1008,6 +1033,14 @@ class BrainGOExtension{
         console.log(option);
     }
 
+    getFingerPrint(args){
+        console.log('getGPS');
+        let pin1 = args.PIN1;
+        let pin2 = args.PIN2;
+        console.log(pin1);
+        console.log(pin2);
+    }
+
     isBluetoothAvailable (args){
         console.log('isBluetoothAvailable');
     }
@@ -1091,6 +1124,7 @@ class BrainGOExtension{
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         const value = gen.valueToCode(block, 'VALUE');
         BrainGOExtension.BrainGOArduino(gen);
+        gen.definitions_[`motor_${port}`] = `MeDCMotor motor_${port}(${port});`;
         let code = gen.line(`motor_${port}.run((${port}) == M1 ? -(${value}) : (${value}))`);
         return code;
     }
@@ -1144,8 +1178,8 @@ class BrainGOExtension{
     }
 
     static LCDArduino (gen){
-        gen.includes_[`LCD`] = `#include "LiquidCrystal_I2C.h"`;
-        gen.definitions_[`LCD`] = `LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
+        gen.includes_[`LCD`] = `#include "LCD_I2C.h"`;
+        gen.definitions_[`LCD`] = `LCD_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);`;
         gen.setupCodes_[`LCD_1`] = `lcd.begin(16, 2)`;
         gen.setupCodes_[`LCD_2`] = `lcd.backlight()`;
     }
@@ -1268,13 +1302,14 @@ class BrainGOExtension{
         const option = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'OPTION'));
         BrainGOExtension.BrainGOArduino(gen);
         BrainGOExtension.DHT11Arduino(gen);
-        gen.definitions_[`getDHT11`] = `\nbyte getDHT11(int option){\n  byte values[2];\n  if (dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
+        gen.definitions_[`getDHT11`] = `\nbyte getDHT11(int option){\n  byte values[2];\n  if(dht11.read(&values[0], &values[1], NULL) == SimpleDHTErrSuccess){\n    return values[option];\n  }\n  return 0;\n}\n`;
         let code = `getDHT11(${option})`;
         return [code, 0];
     }
 
     static GPSArduino (gen){
-        gen.includes_[`GPS`] = `#include <SoftwareSerial.h>\n#include "TinyGPSPlus.h"`;
+        gen.includes_[`SoftwareSerial`] = `#include <SoftwareSerial.h>`;
+        gen.includes_[`GPS`] = `#include "TinyGPSPlus.h"`;
         gen.definitions_[`GPS`] = `SoftwareSerial serial_collection(3,2);\nTinyGPSPlus gps;`;
         gen.setupCodes_[`GPS`] = `serial_collection.begin(9600)`;
     }
@@ -1285,6 +1320,18 @@ class BrainGOExtension{
         BrainGOExtension.GPSArduino(gen);
         gen.definitions_[`getGPS`] = `\ndouble getGPS(int option){\n  while(serial_collection.available()){\n    gps.encode(serial_collection.read());\n  }\n  if(option == 0){\n    return gps.location.lng();\n  }else if(option == 1){\n    return gps.location.lat();\n  }else if(option == 2){\n    return gps.altitude.feet();\n  }\n}\n`;
         let code = `getGPS(${option})`;
+        return [code, 0];
+    }
+
+    getFingerPrintArduino (gen, block){
+        const pin1 = gen.valueToCode(block, 'PIN1');
+        const pin2 = gen.valueToCode(block, 'PIN2');
+        BrainGOExtension.BrainGOArduino(gen);
+        gen.includes_[`SoftwareSerial`] = `#include <SoftwareSerial.h>`;
+        gen.includes_[`FingerPrint`] = `#include "FP_command.h"`;
+        gen.definitions_[`FingerPrint`] = `SoftwareSerial FP_Serial(${pin1}, ${pin2});`;
+        gen.definitions_[`getFingerPrint`] = `\nbool getFingerPrint(){\n  FP_LED_open(FP_Serial);\n  if(FP_boolReturnACK()){\n    unsigned int loop_time = 1;\n    while(loop_time <= 50){\n      delay(100);\n      FP_CAPTUREFINGER(0, FP_Serial);\n      if (FP_boolReturnACK()){\n        FP_CAPTUREFINGER(0, FP_Serial);\n        if (FP_boolReturnACK()){\n          FP_Identify(FP_Serial);\n          if (FP_boolReturnACK()){\n            FP_LED_close(FP_Serial);\n            return true;\n          }else{\n            break;\n          }\n        }\n      }\n      loop_time++;\n    }\n  }\n  FP_LED_close(FP_Serial);\n  return false;\n}\n`;
+        let code = `getFingerPrint()`;
         return [code, 0];
     }
 
@@ -1334,6 +1381,7 @@ class BrainGOExtension{
             gen.includes_[`connectWiFi`] = `#define WIFI_SERIAL Serial`;
             gen.setupCodes_[`connectWiFi_MODE${mode}`] = `Serial.begin(9600)`;
         }else if (mode == 1){
+            gen.includes_[`SoftwareSerial`] = `#include <SoftwareSerial.h>`;
             gen.includes_[`connectWiFi`] = `#define WIFI_SERIAL espSerial`;
             gen.definitions_[`connectWiFi_MODE${mode}`] = `SoftwareSerial espSerial(3,2);`;
             gen.setupCodes_[`connectWiFi_MODE${mode}`] = `espSerial.begin({2})`;
@@ -1353,6 +1401,7 @@ class BrainGOExtension{
     }
 
     static CloudArduino (gen){
+        gen.includes_[`SoftwareSerial`] = `#include <SoftwareSerial.h>`;
         gen.definitions_[`Cloud`] = `SoftwareSerial mySerial(13, 12);`;
     }
 

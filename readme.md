@@ -30,7 +30,7 @@ LCD_clear                     | clearLCD
 setupWifi                     | connectWiFi
 setWifiFields                 | uploadWiFiField
 sendFieldData                 | ↑
-fingerPrint                   | 
+fingerPrint                   | getFingerPrint
 DHT11_Init                    | x
 DHT11_Temp                    | getDHT11
 DHT11_Humi                    | ↑

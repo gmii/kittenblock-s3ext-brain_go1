@@ -1,9 +1,0 @@
-请参考官方烧录地址，按照图示进行烧录。
-bank.bin    空白区，用于清除数据
-user1.1024.new.2.bin  代码区
-user2.1024.new.2.bin  升级区
-esp_init_data_default.bin  射频参数区
-boot_v1.5.bin        启动区
-
-
-Eraseflash.bin  擦除flash数据   在重新烧录程序之前建议先使用该文件擦除Flash！！！
