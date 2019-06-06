@@ -3,6 +3,5 @@
     "type": "arduino",
     "extensions": ["BrainGO"],
     "image": "BrainGO.png",
-    "hex": "BrainGO.hex",
-    "factory": "arduinolib/BrainGO/mbot_firmware/mbot_firmware.ino"
+    "hex": "BrainGO.hex"
 }

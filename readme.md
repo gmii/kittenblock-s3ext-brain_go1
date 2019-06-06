@@ -42,7 +42,6 @@ Owncloud                      | setupCloud                    |    |         |
 updata                        | uploadCloud                   |    |         |
 backdata                      | getCloudReturnValues          |    |         |
 val                           | ↑                             |    |         |
------------------------------ | ----------------------------- | -- | ------- |
 
 ## bug
 ### servo
