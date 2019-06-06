@@ -17,8 +17,9 @@ class BrainGOExtension{
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
 
+        this.lineBuffer = new Uint8Array();
+
         this.decoder = new TextDecoder();
-        this.lineBuffer = '';
     }
 
     write (data){
@@ -33,15 +34,15 @@ class BrainGOExtension{
     }
 
     onmessage (data){
-        const dataStr = this.decoder.decode(data);
-        this.lineBuffer += dataStr;
-        if (this.lineBuffer.indexOf('\n') !== -1){
-            const lines = this.lineBuffer.split('\n');
-            this.lineBuffer = lines.pop();
-            for (const l of lines){
-                if (this.reporter) this.reporter(l);
-            }
+        const newBuf = new Uint8Array(this.lineBuffer.length + data.length);
+        newBuf.set(this.lineBuffer);
+        newBuf.set(data, this.lineBuffer.length);
+        this.lineBuffer = newBuf;
+        while (this.lineBuffer.indexOf(10) !== -1){
+            if (this.reporter) this.reporter(this.lineBuffer.slice(0, this.lineBuffer.indexOf(10)));
+            this.lineBuffer = this.lineBuffer.slice(this.lineBuffer.indexOf(10) + 1);
         }
+        if (this.lineBuffer.length > 0) if (this.reporter) this.reporter(this.lineBuffer);
     }
 
     onclose (error){
@@ -217,12 +218,12 @@ class BrainGOExtension{
                         arduino: this.setLightArduino
                     }
                 },
-                { //setPin
-                    opcode: 'setPin',
+                { //setDigitalPin
+                    opcode: 'setDigitalPin',
                     blockType: BlockType.COMMAND,
 
                     text: formatMessage({
-                        id: 'BrainGO.setPin',
+                        id: 'BrainGO.setDigitalPin',
                         default: 'set pin [PIN] [SWITCH]'
                     }),
                     arguments: {
@@ -237,9 +238,9 @@ class BrainGOExtension{
                             menu: 'pinSwitch'
                         }
                     },
-                    func: 'setPin',
+                    func: 'setDigitalPin',
                     gen: {
-                        arduino: this.setPinArduino
+                        arduino: this.setDigitalPinArduino
                     }
                 },
                 { //setLCD
@@ -769,7 +770,7 @@ class BrainGOExtension{
                     'setBuzzer': 'play tone on note [NOTE] beat [BEAT]',
                     'setLED': 'set led [COLOR] [SWITCH]',
                     'setLight': 'set light [COLOR] [SWITCH]',
-                    'setPin': 'set pin [PIN] [SWITCH]',
+                    'setDigitalPin': 'set pin [PIN] [SWITCH]',
                     'setLCD': 'set lcd row [ROW] col [COL] string [STR]',
                     'clearLCD': 'clear lcd',
                     'getDigitalPin': 'read digital pin [PIN]',
@@ -820,7 +821,7 @@ class BrainGOExtension{
                     'setBuzzer': '播放 音調為 [NOTE] 節拍為 [BEAT]',
                     'setLED': '設置LED [COLOR] [SWITCH]',
                     'setLight': '設置燈 [COLOR] [SWITCH]',
-                    'setPin': '設置腳位 [PIN] [SWITCH]',
+                    'setDigitalPin': '設置腳位 [PIN] [SWITCH]',
                     'setLCD': '設置LCD 第 [ROW] 行 第 [COL] 個字 文字 [STR]',
                     'clearLCD': '清除LCD內容',
                     'getDigitalPin': '讀取數位訊號腳位 [PIN]',
@@ -891,7 +892,7 @@ class BrainGOExtension{
             'analogPin1': 15, 'analogPin2': 16,
             'lightSensorRed': 9, 'lightSensorGreen': 10,
             'rgbSensorRed': 0, 'rgbSensorGreen': 1, 'rgbSensorBlue': 2,
-            'ultrasonicSensorWhite': 12, 'ultrasonicSensorBlue': 13,
+            'ultrasonicSensorWhite': 1, 'ultrasonicSensorBlue': 2,
             '3AxisGyroXAxis': 1, '3AxisGyroYAxis': 2, '3AxisGyroZAxis': 3,
             'DHT11Temperature': 0, 'DHT11Humidity': 1,
             'GPSLongitude': 0, 'GPSLatitude': 1, 'GPSAltitude': 2,
@@ -907,20 +908,98 @@ class BrainGOExtension{
 
     /************************************************** Function **************************************************/
 
+    writePackage (args, type){
+        var bytes = [0xff, 0x55, 0, 0, type];
+        for (var i = 0; i < args.length; ++i){
+            var val = args[i];
+            if (Array.isArray(val)){
+                bytes = bytes.concat(val);
+            }else{
+                bytes.push(val);
+            }
+        }
+        console.log(bytes);
+        bytes[2] = bytes.length - 3;
+        if (type == 1){
+            return this.report(bytes);
+        }else if (type == 2){
+            this.write(bytes);
+        }
+    }
+
+    setPackage (){
+        this.writePackage(arguments, 2);
+    }
+
+    getPackage (){
+        return this.writePackage(arguments, 1);
+    }
+
+    static getReturnValue(data){
+        console.log(data);
+        if (data[0] == 255 && data[1] == 85){
+            switch(data[3]){
+                case 1: // byte
+                    return data[4];
+                    break;
+                case 2: // float
+                    return BrainGOExtension.array2float(data.slice(4, 8));
+                    break;
+                case 3: // short
+                    return BrainGOExtension.array2short(data.slice(4, 8));
+                    break;
+                case 4: // len+str
+                    return this.decoder.decode(data.slice(5));
+                    break;
+                case 5: // double
+                    return BrainGOExtension.array2double(data.slice(4, 12));
+                    break;
+                default:
+                    return -1;
+            }
+        }else{
+            return -1;
+        }
+    }
+
+    static short2array (value){
+        let array = new Uint16Array(1);
+        array[0] = value;
+        return Array.from(new Uint8Array(array.buffer));
+    }
+
+    static array2float (array){
+        return new Float32Array(array.buffer)[0];
+    }
+
+    static array2short (array){
+        return new Int32Array(array.buffer)[0];
+    }
+
+    static array2double (array){
+        return new Float64Array(array.buffer)[0];
+    }
+
+    /************************************************** Block Function **************************************************/
+
     setMotor (args){
         console.log('setMotor');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
-        let value = args.VALUE;
+        let value = Number(args.VALUE);
         console.log(port);
         console.log(value);
+
+        this.setPackage(10, port, BrainGOExtension.short2array(port == 9 ? -value : value));
     }
 
     setServo (args){
         console.log('setServo');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
-        let value = args.VALUE;
+        let value = Number(args.VALUE);
         console.log(port);
         console.log(value);
+
+        this.setPackage(11, port, value);
     }
 
     setBuzzer (args){
@@ -929,6 +1008,8 @@ class BrainGOExtension{
         let beat = BrainGOExtension.MenuItemValue(args.BEAT);
         console.log(note);
         console.log(beat);
+
+        this.setPackage(34, BrainGOExtension.short2array(note), BrainGOExtension.short2array(beat));
     }
 
     setLED (args){
@@ -937,6 +1018,8 @@ class BrainGOExtension{
         let sw = BrainGOExtension.MenuItemValue(args.SWITCH);
         console.log(color);
         console.log(sw);
+
+        this.setPackage(30, color, sw);
     }
 
     setLight (args){
@@ -945,14 +1028,18 @@ class BrainGOExtension{
         let sw = BrainGOExtension.MenuItemValue(args.SWITCH);
         console.log(color);
         console.log(sw);
+
+        this.setPackage(30, color, sw);
     }
 
-    setPin (args){
-        console.log('setPin');
+    setDigitalPin (args){
+        console.log('setDigitalPin');
         let pin = BrainGOExtension.MenuItemValue(args.PIN);
         let sw = BrainGOExtension.MenuItemValue(args.SWITCH);
         console.log(pin);
         console.log(sw);
+        
+        this.setPackage(30, pin, sw);
     }
 
     setLCD (args){
@@ -971,20 +1058,32 @@ class BrainGOExtension{
 
     getDigitalPin (args){
         console.log('getDigitalPin');
-        let pin = args.PIN;
+        let pin = Number(args.PIN);
         console.log(pin);
+
+        return this.getPackage(30, pin).then(ret => {
+            return BrainGOExtension.getReturnValue(ret);
+        });
     }
 
     getAnalogPin (args){
         console.log('getAnalogPin');
         let pin = BrainGOExtension.MenuItemValue(args.PIN);
         console.log(pin);
+
+        return this.getPackage(31, pin).then(ret => {
+            return BrainGOExtension.getReturnValue(ret);
+        });
     }
 
     getLightSensor (args){
         console.log('getLightSensor');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
         console.log(port);
+
+        return this.getPackage(30, port).then(ret => {
+            return BrainGOExtension.getReturnValue(ret);
+        });
     }
 
     getRGBSensor (args){
@@ -997,6 +1096,10 @@ class BrainGOExtension{
         console.log('getUltrasonicSensor');
         let port = BrainGOExtension.MenuItemValue(args.PORT);
         console.log(port);
+
+        return this.getPackage(1, port == 1 ? [13, 12] : [2, 3]).then(ret => {
+            return BrainGOExtension.getReturnValue(ret);
+        });
     }
 
     get3AxisGyro (args){
@@ -1140,11 +1243,15 @@ class BrainGOExtension{
         return code;
     }
 
+    static BuzzerArduino (gen){
+        gen.definitions_[`Buzzer`] = `MeBuzzer buzzer;`;
+    }
+
     setBuzzerArduino (gen, block){
         const note = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'NOTE'));
         const beat = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'BEAT'));
         BrainGOExtension.BrainGOArduino(gen);
-        gen.definitions_[`setBuzzer`] = `MeBuzzer buzzer;`;
+        BrainGOExtension.BuzzerArduino(gen);
         let code = gen.line(`buzzer.tone(${note}, ${beat})`);
         code += gen.line(`delay(20)`);
         return code;
@@ -1168,11 +1275,11 @@ class BrainGOExtension{
         return code;
     }
 
-    setPinArduino (gen, block){
+    setDigitalPinArduino (gen, block){
         const pin = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PIN'));
         const sw = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'SWITCH'));
         BrainGOExtension.BrainGOArduino(gen);
-        gen.setupCodes_[`setPin_${pin}`] = `pinMode(${pin}, OUTPUT)`;
+        gen.setupCodes_[`setDigitalPin_${pin}`] = `pinMode(${pin}, OUTPUT)`;
         let code = gen.line(`digitalWrite(${pin}, ${sw})`);
         return code;
     }
@@ -1240,7 +1347,7 @@ class BrainGOExtension{
     getUltrasonicSensorArduino (gen, block){
         const port = BrainGOExtension.MenuItemValue(gen.valueToCode(block, 'PORT'));
         BrainGOExtension.BrainGOArduino(gen);
-        gen.definitions_[`getUltrasonicSensor`] = `\nfloat getDistance(int trig){\n  char A = 0;\n  char B = 0;\n  char C = 0;\n  if(trig == 12){ A = 13; B = 12; }else{ A = 2; B = 3; }\n  pinMode(A, OUTPUT);\n  digitalWrite(A, LOW);\n  delayMicroseconds(2);\n  digitalWrite(A, HIGH);\n  delayMicroseconds(10);\n  digitalWrite(A, LOW);\n  pinMode(B, INPUT);\n  C = pulseIn(B, HIGH, 30000) / 58.0;\n  if(C <= 1){ return 400; }else{ return C; }\n}\n`;
+        gen.definitions_[`getUltrasonicSensor`] = `\nfloat getDistance(int trig){\n  char A = 0;\n  char B = 0;\n  char C = 0;\n  if(trig == 1){ A = 13; B = 12; }else{ A = 2; B = 3; }\n  pinMode(A, OUTPUT);\n  digitalWrite(A, LOW);\n  delayMicroseconds(2);\n  digitalWrite(A, HIGH);\n  delayMicroseconds(10);\n  digitalWrite(A, LOW);\n  pinMode(B, INPUT);\n  C = pulseIn(B, HIGH, 30000) / 58.0;\n  if(C <= 1){ return 400; }else{ return C; }\n}\n`;
         let code = `getDistance(${port})`;
         return [code, 0];
     }
